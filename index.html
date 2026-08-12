@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZALF PAY - ZALF PRODUCTION</title>
+    
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#047857">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ZALF PAY">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- html2canvas for Image Sharing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Tailwind Config for Brand Colors & Manual Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Menggunakan class manual untuk toggle gelap/terang
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            emerald: '#047857', // Emerald Green
+                            navy: '#1e293b',    // Navy Blue
+                            gold: '#eab308',    // Gold
+                            light: '#f8fafc'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Pre-load Theme Setup untuk menghindari kedipan warna putih -->
+    <script>
+        const savedTheme = localStorage.getItem('zalf_theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <style>
+        /* Custom Styles & Print Styles */
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* Hide scrollbar for cleaner mobile look */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        @media (prefers-color-scheme: dark) {
+            html.dark .glass-nav { background: rgba(15, 23, 42, 0.95) !important; }
+        }
+        
+        /* Print Styles for Nota / Struk / Laporan */
+        @media print {
+            body { background: white !important; color: black !important; margin: 0; padding: 0; }
+            body * { visibility: hidden; }
+            
+            #screen-invoice:not(.hidden), #screen-invoice:not(.hidden) *,
+            #screen-reports:not(.hidden), #screen-reports:not(.hidden) * { visibility: visible; }
+            
+            #screen-invoice:not(.hidden), #screen-reports:not(.hidden) { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            #invoice-paper, #report-paper { box-shadow: none !important; margin: 0 auto; max-width: 100%; border: none !important; padding: 10px; background: white !important; color: black !important; }
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffffff;
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen pb-20 overflow-x-hidden transition-colors duration-200">
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-brand-emerald flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-2xl animate-bounce">
+            <i data-lucide="wallet" class="text-brand-emerald w-12 h-12"></i>
+        </div>
+        <h1 class="text-3xl font-black text-white tracking-widest mb-1">ZALF PAY</h1>
+        <p class="text-brand-gold text-xs font-medium uppercase tracking-widest mb-10">Production</p>
+        <div class="loader"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white px-6 py-3 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-[110] text-sm font-medium">
+        Pesan Notifikasi
+    </div>
+
+    <!-- App Container -->
+    <div id="app" class="max-w-2xl mx-auto w-full relative">
+
+        <!-- ============================== -->
+        <!-- WIDGET POJOK KANAN ATAS (JAM & TEMA) -->
+        <!-- ============================== -->
+        <div id="top-right-widget" class="absolute top-4 right-4 z-[90] flex items-center space-x-2 hidden no-print">
+            <!-- Jam Realtime -->
+            <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur px-2.5 py-1.5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center min-w-[75px] justify-center">
+                <span class="realtime-clock text-[11px] sm:text-xs font-mono font-bold text-brand-navy dark:text-white tracking-wider">00:00:00</span>
+            </div>
+            <!-- Toggle Tema -->
+            <button onclick="appLogic.toggleTheme()" class="p-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-yellow-400 active:scale-95 transition-transform">
+                <i data-lucide="moon" class="theme-icon w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: LOGIN -->
+        <!-- ============================== -->
+        <div id="screen-login" class="hidden min-h-screen flex flex-col justify-center items-center p-6 bg-white dark:bg-slate-950">
+            <div class="w-full max-w-sm text-center">
+                <div class="w-20 h-20 bg-brand-emerald rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-brand-emerald/30">
+                    <i data-lucide="wallet" class="text-white w-10 h-10"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-brand-navy dark:text-white mb-1">ZALF PAY</h1>
+                <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Creative • Printing • Digital Solution</p>
+                
+                <form id="form-login" class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" id="login-email" class="w-full p-3 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-emerald outline-none transition" required placeholder="admin@zalf.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                        <input type="password" id="login-password" class="w-full p-3 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-emerald outline-none transition" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-emerald text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-emerald-700 transition active:scale-[0.98]">
+                        MASUK
+                    </button>
+                    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4 cursor-pointer hover:text-brand-emerald" id="btn-demo-login">Mode Demo (Tanpa Password)</p>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: DASHBOARD -->
+        <!-- ============================== -->
+        <div id="screen-dashboard" class="hidden p-4 pt-16 space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-brand-navy dark:text-white">Dashboard</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400" id="dash-date">Hari ini</p>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">OMZET HARI INI</p>
+                    <h3 class="text-lg font-bold text-brand-emerald" id="dash-omzet">Rp 0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">PENGELUARAN HARI INI</p>
+                    <h3 class="text-lg font-bold text-red-500" id="dash-pengeluaran">Rp 0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">LABA HARI INI</p>
+                    <h3 class="text-lg font-bold text-brand-navy dark:text-white" id="dash-laba">Rp 0</h3>
+                </div>
+                <div class="bg-brand-navy dark:bg-slate-900 border border-transparent dark:border-slate-800 p-4 rounded-2xl shadow-md">
+                    <p class="text-xs font-semibold text-brand-gold mb-1">SALDO KESELURUHAN</p>
+                    <h3 class="text-lg font-bold text-white" id="dash-saldo">Rp 0</h3>
+                </div>
+            </div>
+
+            <!-- CTA Button -->
+            <button onclick="appNav.goTo('transaction-form')" class="w-full bg-brand-emerald text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-emerald/30 flex items-center justify-center space-x-2 hover:bg-emerald-700 active:scale-[0.98] transition">
+                <i data-lucide="plus-circle"></i>
+                <span class="text-lg">TRANSAKSI BARU</span>
+            </button>
+
+            <!-- Latest Transactions -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-brand-navy dark:text-white">Transaksi Terbaru</h3>
+                    <button onclick="appNav.goTo('transactions')" class="text-sm text-brand-emerald font-medium">Lihat Semua</button>
+                </div>
+                <div id="dash-latest-list" class="space-y-3">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: FORM TRANSAKSI -->
+        <!-- ============================== -->
+        <div id="screen-transaction-form" class="hidden p-4 pt-16">
+            <div class="flex items-center mb-6">
+                <button onclick="appNav.goTo('dashboard')" class="mr-4 p-2 bg-white dark:bg-slate-900 text-gray-800 dark:text-white rounded-full shadow-sm border dark:border-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <h2 class="text-xl font-bold text-brand-navy dark:text-white">Transaksi Baru</h2>
+            </div>
+
+            <form id="form-trx" class="space-y-4 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+                <!-- Pelanggan -->
+                <div class="space-y-3">
+                    <h3 class="font-bold text-sm text-gray-800 dark:text-gray-200 border-b dark:border-slate-800 pb-2">Informasi Pelanggan</h3>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nama Pelanggan *</label>
+                        <input type="text" id="trx-name" required class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-emerald outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nomor WhatsApp *</label>
+                        <input type="tel" id="trx-wa" required placeholder="08xxxxxxxxxx" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-emerald outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Pesanan -->
+                <div class="space-y-3 pt-3">
+                    <h3 class="font-bold text-sm text-gray-800 dark:text-gray-200 border-b dark:border-slate-800 pb-2">Detail Pesanan</h3>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Produk / Jasa *</label>
+                        <input type="text" id="trx-product" required placeholder="Contoh: Desain Banner" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-emerald outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Catatan (Opsional)</label>
+                        <textarea id="trx-note" rows="2" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-emerald outline-none transition"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Harga Satuan (Rp) *</label>
+                            <input type="number" id="trx-price" required min="0" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jumlah *</label>
+                            <input type="number" id="trx-qty" required min="1" value="1" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Diskon (Rp)</label>
+                            <input type="number" id="trx-discount" min="0" value="0" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Ongkir (Rp)</label>
+                            <input type="number" id="trx-shipping" min="0" value="0" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary & Payment -->
+                <div class="space-y-3 pt-3">
+                    <h3 class="font-bold text-sm text-gray-800 dark:text-gray-200 border-b dark:border-slate-800 pb-2">Pembayaran</h3>
+                    <div class="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl mb-3 border dark:border-slate-700">
+                        <div class="flex justify-between text-sm mb-1"><span class="text-gray-500 dark:text-gray-400">Subtotal:</span> <span id="calc-subtotal" class="font-medium text-gray-800 dark:text-gray-200">Rp 0</span></div>
+                        <div class="flex justify-between text-sm mb-1"><span class="text-gray-500 dark:text-gray-400">Diskon:</span> <span id="calc-discount" class="text-red-500 font-medium">-Rp 0</span></div>
+                        <div class="flex justify-between text-sm mb-2"><span class="text-gray-500 dark:text-gray-400">Ongkir:</span> <span id="calc-shipping" class="font-medium text-gray-800 dark:text-gray-200">+Rp 0</span></div>
+                        <div class="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-slate-700 pt-2 text-brand-navy dark:text-white">
+                            <span>TOTAL:</span> <span id="calc-total">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Status Pembayaran *</label>
+                        <select id="trx-status" required class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                            <option value="LUNAS">LUNAS</option>
+                            <option value="DP">DP (Sebagian)</option>
+                            <option value="BELUM LUNAS">BELUM LUNAS</option>
+                        </select>
+                    </div>
+                    <div id="dp-container" class="hidden">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jumlah DP yang dibayar (Rp)</label>
+                        <input type="number" id="trx-dp" min="0" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Metode Pembayaran *</label>
+                        <select id="trx-method" required class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                            <option value="Tunai">Tunai</option>
+                            <option value="Transfer">Transfer</option>
+                            <option value="QRIS">QRIS</option>
+                            <option value="E-Wallet">E-Wallet</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-4 bg-brand-navy dark:bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-700 transition active:scale-[0.98]">
+                    SIMPAN TRANSAKSI
+                </button>
+            </form>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: DAFTAR TRANSAKSI -->
+        <!-- ============================== -->
+        <div id="screen-transactions" class="hidden p-4 pt-16 space-y-4">
+            <h2 class="text-xl font-bold text-brand-navy dark:text-white mb-2">Riwayat Transaksi</h2>
+            
+            <!-- Search & Filter -->
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
+                <input type="text" id="search-trx" placeholder="Cari nama, nota, produk..." class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-emerald">
+            </div>
+
+            <div id="list-transactions" class="space-y-3 pb-4">
+                <!-- Injected via JS -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-trx" class="hidden text-center py-10">
+                <div class="bg-gray-100 dark:bg-slate-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                    <i data-lucide="inbox" class="w-8 h-8"></i>
+                </div>
+                <p class="text-gray-500 dark:text-gray-400 font-medium">Belum ada transaksi</p>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: INVOICE / NOTA -->
+        <!-- ============================== -->
+        <div id="screen-invoice" class="hidden p-4 bg-gray-50 dark:bg-slate-950 min-h-screen">
+            <!-- Action Buttons (No Print) -->
+            <div class="flex flex-wrap gap-2 mb-4 no-print sticky top-2 z-10 bg-gray-50/90 dark:bg-slate-950/90 backdrop-blur-sm pb-2">
+                <button onclick="appNav.goTo('dashboard')" class="flex-1 bg-white dark:bg-slate-900 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 font-medium flex items-center justify-center text-sm"><i data-lucide="home" class="w-4 h-4 mr-1"></i> Home</button>
+                <button id="btn-update-pay" onclick="document.getElementById('modal-payment').classList.remove('hidden')" class="hidden flex-1 bg-brand-gold text-white px-3 py-2 rounded-xl shadow-sm font-medium flex items-center justify-center text-sm min-w-[120px]"><i data-lucide="check-circle" class="w-4 h-4 mr-1"></i> Pelunasan</button>
+                <button onclick="appLogic.printInvoice()" class="flex-1 bg-white dark:bg-slate-900 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 font-medium flex items-center justify-center text-sm"><i data-lucide="printer" class="w-4 h-4 mr-1"></i> Cetak</button>
+                <button id="btn-share-img" onclick="appLogic.shareImage()" class="flex-1 bg-brand-navy dark:bg-slate-800 text-white px-3 py-2 rounded-xl shadow-sm font-medium flex items-center justify-center text-sm"><i data-lucide="image" class="w-4 h-4 mr-1"></i> Gambar</button>
+                <button id="btn-share-wa" class="flex-1 bg-[#25D366] text-white px-3 py-2 rounded-xl shadow-sm font-medium flex items-center justify-center text-sm"><i data-lucide="message-circle" class="w-4 h-4 mr-1"></i> WA</button>
+            </div>
+
+            <!-- The Invoice Paper -->
+            <div id="invoice-paper" class="bg-white text-gray-800 p-6 sm:p-8 rounded-none sm:rounded-xl shadow-sm border border-gray-200 max-w-sm sm:max-w-md mx-auto relative overflow-hidden">
+                <div class="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
+                    <h1 class="text-2xl font-black text-brand-navy uppercase tracking-wider" id="inv-brand">ZALF PRODUCTION</h1>
+                    <p class="text-[10px] text-brand-gold font-bold mb-2 uppercase tracking-widest" id="inv-tagline">Creative • Printing • Digital Solution</p>
+                    <p class="text-[11px] text-gray-500" id="inv-address">Jl. Contoh Alamat No 123</p>
+                    <p class="text-[11px] text-gray-500">WA: <span id="inv-phone">08123456789</span></p>
+                </div>
+
+                <div class="text-center font-bold text-lg tracking-widest mb-4">NOTA</div>
+
+                <div class="flex justify-between text-xs mb-4 text-gray-700">
+                    <div>
+                        <p>No: <span id="inv-number" class="font-bold">ZLF-20260812-001</span></p>
+                        <p>Tgl: <span id="inv-date">12/08/2026</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p>Plg: <span id="inv-customer" class="font-bold uppercase">Ahmad</span></p>
+                        <p><span id="inv-customer-phone">08xxxx</span></p>
+                    </div>
+                </div>
+
+                <div class="border-t-2 border-b-2 border-dashed border-gray-300 py-3 mb-4">
+                    <p class="text-[10px] font-bold text-gray-400 mb-2">DETAIL PESANAN</p>
+                    <div class="mb-2">
+                        <p class="font-bold text-sm" id="inv-product">Desain Banner</p>
+                        <p class="text-xs text-gray-500 italic" id="inv-note"></p>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span id="inv-qty-price">1 x Rp75.000</span>
+                            <span id="inv-subtotal" class="font-medium">Rp75.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1 text-xs text-gray-700 border-b-2 border-dashed border-gray-300 pb-4 mb-4">
+                    <div class="flex justify-between"><span>Subtotal</span> <span id="inv-sum-sub">Rp75.000</span></div>
+                    <div class="flex justify-between text-red-500"><span>Diskon</span> <span id="inv-sum-disc">Rp0</span></div>
+                    <div class="flex justify-between"><span>Ongkir</span> <span id="inv-sum-ship">Rp0</span></div>
+                    <div class="flex justify-between text-base font-black pt-2 mt-2 border-t border-gray-100 text-brand-navy">
+                        <span>TOTAL</span> <span id="inv-sum-total">Rp75.000</span>
+                    </div>
+                </div>
+
+                <div class="text-xs bg-gray-50 p-3 rounded-lg border border-gray-100 text-center mb-6">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <p class="text-[10px] text-gray-500 mb-1">Status</p>
+                            <p class="font-bold uppercase text-brand-emerald" id="inv-status">LUNAS</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 mb-1">Metode</p>
+                            <p class="font-bold uppercase" id="inv-method">QRIS</p>
+                        </div>
+                    </div>
+                    <div id="inv-dp-info" class="hidden mt-2 pt-2 border-t border-gray-200 text-left">
+                        <div class="flex justify-between text-[11px]"><span class="text-gray-500">Dibayar:</span> <span id="inv-paid" class="font-medium">Rp0</span></div>
+                        <div class="flex justify-between text-[11px]"><span class="text-gray-500">Sisa Tagihan:</span> <span id="inv-remain" class="font-bold text-red-500">Rp0</span></div>
+                    </div>
+                </div>
+
+                <div class="text-center text-[10px] text-gray-500 pt-2">
+                    <p>Terima kasih telah mempercayakan kebutuhan Anda kepada</p>
+                    <p class="font-bold text-brand-navy mt-1">ZALF PRODUCTION</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: PENGELUARAN -->
+        <!-- ============================== -->
+        <div id="screen-expenses" class="hidden p-4 pt-16 space-y-4">
+            <h2 class="text-xl font-bold text-brand-navy dark:text-white mb-2">Pengeluaran</h2>
+
+            <!-- Add Expense Card -->
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+                <button onclick="document.getElementById('form-exp-container').classList.toggle('hidden')" class="w-full flex justify-between items-center font-bold text-brand-emerald">
+                    <span>+ Catat Pengeluaran Baru</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                </button>
+                <div id="form-exp-container" class="hidden pt-4 mt-2 border-t border-gray-100 dark:border-slate-800">
+                    <form id="form-exp" class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tanggal</label>
+                                <input type="date" id="exp-date" required class="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Kategori</label>
+                                <select id="exp-category" required class="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg outline-none">
+                                    <option value="Bahan">Bahan</option>
+                                    <option value="Printing">Printing</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Operasional">Operasional</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Keterangan Singkat</label>
+                            <input type="text" id="exp-desc" required placeholder="Cth: Beli tinta" class="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jumlah (Rp)</label>
+                            <input type="number" id="exp-amount" required min="0" class="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg shadow-sm hover:bg-red-600 transition">
+                            SIMPAN PENGELUARAN
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Expenses -->
+            <div id="list-expenses" class="space-y-3 pb-4">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: LAPORAN -->
+        <!-- ============================== -->
+        <div id="screen-reports" class="hidden p-4 pt-16 space-y-4 min-h-screen bg-gray-50 dark:bg-slate-950">
+            <div class="flex justify-between items-center no-print">
+                <h2 class="text-xl font-bold text-brand-navy dark:text-white">Laporan Keuangan</h2>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 flex overflow-x-auto no-scrollbar gap-2 mb-4 no-print">
+                <button onclick="appLogic.generateReport('today')" class="rep-tab active-rep-tab px-4 py-2 text-sm font-medium rounded-lg bg-brand-emerald text-white whitespace-nowrap">Hari Ini</button>
+                <button onclick="appLogic.generateReport('week')" class="rep-tab px-4 py-2 text-sm font-medium rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 whitespace-nowrap">Minggu Ini</button>
+                <button onclick="appLogic.generateReport('month')" class="rep-tab px-4 py-2 text-sm font-medium rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 whitespace-nowrap">Bulan Ini</button>
+                <button onclick="appLogic.generateReport('all')" class="rep-tab px-4 py-2 text-sm font-medium rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 whitespace-nowrap">Semua Waktu</button>
+            </div>
+            
+            <!-- Action Buttons for Report -->
+            <div class="flex gap-2 mb-4 no-print">
+                <button onclick="window.print()" class="flex-1 bg-white dark:bg-slate-900 text-gray-700 dark:text-gray-200 px-3 py-2.5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 font-medium flex items-center justify-center text-sm"><i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak Laporan</button>
+                <button id="btn-share-rep-img" onclick="appLogic.shareReportImage()" class="flex-1 bg-brand-navy dark:bg-slate-800 text-white px-3 py-2.5 rounded-xl shadow-sm font-medium flex items-center justify-center text-sm"><i data-lucide="image" class="w-4 h-4 mr-2"></i> Bagikan Gambar</button>
+            </div>
+
+            <!-- Report Paper Area -->
+            <div id="report-paper" class="bg-white text-gray-800 p-5 sm:p-6 rounded-2xl sm:rounded-xl shadow-sm border border-gray-100 space-y-4 max-w-sm sm:max-w-md mx-auto">
+                <div class="text-center border-b border-gray-100 pb-4 mb-4">
+                    <h2 class="font-black text-brand-navy text-lg" id="rep-brand-name">ZALF PRODUCTION</h2>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Laporan Keuangan</p>
+                    <h3 class="inline-block bg-brand-emerald/10 text-brand-emerald px-3 py-1 rounded-full font-bold text-xs" id="rep-title">Periode: Hari Ini</h3>
+                </div>
+                
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <div class="flex items-center text-brand-emerald"><i data-lucide="arrow-down-circle" class="w-5 h-5 mr-2"></i> <span>Pemasukan</span></div>
+                    <span class="font-bold text-lg" id="rep-in">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <div class="flex items-center text-red-500"><i data-lucide="arrow-up-circle" class="w-5 h-5 mr-2"></i> <span>Pengeluaran</span></div>
+                    <span class="font-bold text-lg" id="rep-out">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-b border-gray-100 pb-3">
+                    <div class="flex items-center text-brand-navy font-bold"><i data-lucide="wallet" class="w-5 h-5 mr-2"></i> <span>LABA BERSIH</span></div>
+                    <span class="font-black text-xl text-brand-navy" id="rep-profit">Rp 0</span>
+                </div>
+                
+                <div class="pt-2 flex justify-between items-center">
+                    <span class="text-xs text-gray-500 font-medium">Total Transaksi (Invoice)</span>
+                    <span class="font-bold text-lg text-brand-navy" id="rep-count">0</span>
+                </div>
+                
+                <div class="text-center text-[10px] text-gray-400 pt-6 mt-2 border-t border-dashed border-gray-200">
+                    <p>Dicetak dari ZALF PAY App</p>
+                    <p id="rep-timestamp"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- SCREEN: PENGATURAN -->
+        <!-- ============================== -->
+        <div id="screen-settings" class="hidden p-4 pt-16 space-y-4">
+            <h2 class="text-xl font-bold text-brand-navy dark:text-white mb-2">Pengaturan Toko</h2>
+
+            <form id="form-settings" class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nama Usaha</label>
+                    <input type="text" id="set-name" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none" value="ZALF PRODUCTION">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Tagline</label>
+                    <input type="text" id="set-tagline" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none" value="Creative • Printing • Digital Solution">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nomor WhatsApp</label>
+                    <input type="tel" id="set-phone" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Alamat</label>
+                    <textarea id="set-address" rows="2" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-brand-navy dark:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md hover:bg-slate-700 transition">
+                    SIMPAN PENGATURAN
+                </button>
+            </form>
+
+            <button onclick="appLogic.logout()" class="w-full bg-white dark:bg-slate-900 text-red-500 border border-red-200 dark:border-red-900/40 font-bold py-3 rounded-xl shadow-sm hover:bg-red-50 dark:hover:bg-red-950/20 transition flex justify-center items-center">
+                <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> KELUAR (LOGOUT)
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Modal Update Payment -->
+    <div id="modal-payment" class="hidden fixed inset-0 z-[120] bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 shadow-xl transform transition-all border dark:border-slate-800">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-brand-navy dark:text-white text-lg">Pelunasan Transaksi</h3>
+                <button onclick="document.getElementById('modal-payment').classList.add('hidden')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="bg-red-50 dark:bg-red-950/30 p-3 rounded-lg mb-4 text-center border border-red-100 dark:border-red-900/20">
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Sisa tagihan yang harus dibayar:</p>
+                <p id="modal-remain" class="font-black text-red-500 text-xl">Rp 0</p>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center">Apakah pelanggan ini melunasi sisa tagihannya?</p>
+            <div class="flex space-x-3">
+                <button onclick="document.getElementById('modal-payment').classList.add('hidden')" class="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 font-bold py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition">Batal</button>
+                <button onclick="appLogic.savePaymentUpdate()" class="flex-1 bg-brand-emerald text-white font-bold py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition flex justify-center items-center">
+                    <i data-lucide="check" class="w-4 h-4 mr-2"></i> LUNASKAN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav" class="hidden fixed bottom-0 left-0 w-full glass-nav border-t border-gray-200 dark:border-slate-800 z-40 pb-safe">
+        <div class="max-w-2xl mx-auto flex justify-around items-center py-2 px-1">
+            <button onclick="appNav.goTo('dashboard')" class="nav-btn flex flex-col items-center p-2 text-gray-400 hover:text-brand-emerald w-16" data-target="dashboard">
+                <i data-lucide="home" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Home</span>
+            </button>
+            <button onclick="appNav.goTo('transactions')" class="nav-btn flex flex-col items-center p-2 text-gray-400 hover:text-brand-emerald w-16" data-target="transactions">
+                <i data-lucide="file-text" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Riwayat</span>
+            </button>
+            <button onclick="appNav.goTo('transaction-form')" class="nav-btn flex flex-col items-center p-2 text-gray-400 hover:text-brand-emerald relative -top-3 w-16" data-target="transaction-form">
+                <div class="bg-brand-emerald text-white p-3 rounded-full shadow-lg shadow-brand-emerald/40 border-4 border-white dark:border-slate-950">
+                    <i data-lucide="plus" class="w-6 h-6"></i>
+                </div>
+            </button>
+            <button onclick="appNav.goTo('expenses')" class="nav-btn flex flex-col items-center p-2 text-gray-400 hover:text-brand-emerald w-16" data-target="expenses">
+                <i data-lucide="receipt" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Biaya</span>
+            </button>
+            <button onclick="appNav.toggleMenuModal()" class="nav-btn flex flex-col items-center p-2 text-gray-400 hover:text-brand-emerald w-16">
+                <i data-lucide="menu" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Menu</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Menu Modal -->
+    <div id="menu-modal" class="hidden fixed inset-0 z-50 bg-black/50 transition-opacity">
+        <div class="absolute bottom-0 left-0 w-full bg-white dark:bg-slate-900 rounded-t-2xl p-4 transform transition-transform translate-y-0 shadow-2xl pb-10 border-t dark:border-slate-800">
+            <div class="flex justify-between items-center mb-4 border-b dark:border-slate-800 pb-2">
+                <h3 class="font-bold text-brand-navy dark:text-white">Menu Lainnya</h3>
+                <button onclick="appNav.toggleMenuModal()" class="p-1 text-gray-500"><i data-lucide="x"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="appNav.goTo('reports'); appNav.toggleMenuModal()" class="flex items-center p-3 border border-gray-100 dark:border-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800">
+                    <i data-lucide="pie-chart" class="w-5 h-5 mr-3 text-brand-emerald"></i> <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Laporan</span>
+                </button>
+                <button onclick="appNav.goTo('settings'); appNav.toggleMenuModal()" class="flex items-center p-3 border border-gray-100 dark:border-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800">
+                    <i data-lucide="settings" class="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400"></i> <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Pengaturan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Firebase & Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, getDocs, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // GANTI NILAI INI DENGAN FIREBASE CONFIG ANDA
+        // ==========================================
+        let firebaseConfig = {
+  apiKey: "AIzaSyBpHTJtg30msgzwbQPxiHfN_0ZcGErNqFk",
+  authDomain: "zalf-pay.firebaseapp.com",
+  projectId: "zalf-pay",
+  storageBucket: "zalf-pay.firebasestorage.app",
+  messagingSenderId: "638293335682",
+  appId: "1:638293335682:web:1d3e3d54c4d56214b11e9b"
+};
+
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'zalf-pay-app';
+        let app, auth, db;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (error) {
+            console.error("Firebase init error:", error);
+        }
+
+        const state = {
+            user: null,
+            transactions: [],
+            expenses: [],
+            settings: {
+                name: "ZALF PRODUCTION",
+                tagline: "Creative • Printing • Digital Solution",
+                phone: "",
+                address: ""
+            },
+            currentInvoice: null,
+            unsubscribeTrx: null,
+            unsubscribeExp: null,
+            unsubscribeSet: null
+        };
+
+        const utils = {
+            formatRupiah: (number) => {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number || 0);
+            },
+            formatDate: (dateStr) => {
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                return new Date(dateStr).toLocaleDateString('id-ID', options);
+            },
+            showToast: (msg) => {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.remove('opacity-0');
+                setTimeout(() => toast.classList.add('opacity-0'), 3000);
+            },
+            generateInvoiceNumber: () => {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const prefix = `ZLF-${yyyy}${mm}${dd}-`;
+                
+                const todayTrx = state.transactions.filter(t => t.invoiceNumber && t.invoiceNumber.startsWith(prefix));
+                const count = todayTrx.length + 1;
+                return `${prefix}${String(count).padStart(3, '0')}`;
+            },
+            hideSplash: () => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('opacity-0');
+                setTimeout(() => {
+                    splash.classList.add('hidden');
+                }, 500); 
+            },
+            updateThemeIconUI: () => {
+                const isDark = document.documentElement.classList.contains('dark');
+                document.querySelectorAll('.theme-icon').forEach(icon => {
+                    icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                });
+                if(window.lucide) lucide.createIcons();
+            }
+        };
+
+        // GLOBAL: Jalankan jam real-time
+        setInterval(() => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.querySelectorAll('.realtime-clock').forEach(el => {
+                el.textContent = timeStr;
+            });
+        }, 1000);
+
+        window.appNav = {
+            screens: ['screen-login', 'screen-dashboard', 'screen-transaction-form', 'screen-transactions', 'screen-invoice', 'screen-expenses', 'screen-reports', 'screen-settings'],
+            
+            goTo: (screenName) => {
+                appNav.screens.forEach(s => {
+                    const el = document.getElementById(s);
+                    if(el) el.classList.add('hidden');
+                });
+                
+                const target = document.getElementById(`screen-${screenName}`);
+                if (target) {
+                    target.classList.remove('hidden');
+                    window.scrollTo(0, 0);
+                }
+
+                const nav = document.getElementById('bottom-nav');
+                const topRightWidget = document.getElementById('top-right-widget');
+                
+                // Atur visibilitas UI element berdasarkan halaman
+                if (screenName === 'login' || screenName === 'invoice' || screenName === 'transaction-form') {
+                    nav.classList.add('hidden');
+                    topRightWidget.classList.add('hidden');
+                    document.body.classList.remove('pb-20');
+                } else {
+                    nav.classList.remove('hidden');
+                    topRightWidget.classList.remove('hidden');
+                    document.body.classList.add('pb-20');
+                }
+
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('text-brand-emerald');
+                    btn.classList.add('text-gray-400');
+                    if (btn.dataset.target === screenName) {
+                        btn.classList.add('text-brand-emerald');
+                        btn.classList.remove('text-gray-400');
+                    }
+                });
+
+                if (screenName === 'dashboard') renderDashboard();
+                if (screenName === 'transactions') renderTransactions();
+                if (screenName === 'expenses') renderExpenses();
+                if (screenName === 'reports') window.appLogic.generateReport('today');
+                if (screenName === 'settings') renderSettingsForm();
+                
+                lucide.createIcons();
+                utils.updateThemeIconUI();
+            },
+            
+            toggleMenuModal: () => {
+                const modal = document.getElementById('menu-modal');
+                modal.classList.toggle('hidden');
+            }
+        };
+
+        const initDataListeners = () => {
+            if (!state.user || !db) return;
+            const uid = state.user.uid;
+
+            const trxRef = collection(db, 'artifacts', appId, 'users', uid, 'transactions');
+            state.unsubscribeTrx = onSnapshot(trxRef, (snapshot) => {
+                const data = [];
+                snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+                state.transactions = data.sort((a, b) => b.createdAt - a.createdAt);
+                if (!document.getElementById('screen-dashboard').classList.contains('hidden')) renderDashboard();
+                if (!document.getElementById('screen-transactions').classList.contains('hidden')) renderTransactions();
+            }, (error) => console.error("Error fetching transactions:", error));
+
+            const expRef = collection(db, 'artifacts', appId, 'users', uid, 'expenses');
+            state.unsubscribeExp = onSnapshot(expRef, (snapshot) => {
+                const data = [];
+                snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+                state.expenses = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                if (!document.getElementById('screen-expenses').classList.contains('hidden')) renderExpenses();
+            }, (error) => console.error("Error fetching expenses:", error));
+
+            const setRef = collection(db, 'artifacts', appId, 'users', uid, 'settings');
+            state.unsubscribeSet = onSnapshot(setRef, (snapshot) => {
+                snapshot.forEach(doc => {
+                    if (doc.id === 'profile') {
+                        state.settings = { ...state.settings, ...doc.data() };
+                    }
+                });
+            }, (error) => console.error("Error fetching settings:", error));
+        };
+
+        const clearListeners = () => {
+            if(state.unsubscribeTrx) state.unsubscribeTrx();
+            if(state.unsubscribeExp) state.unsubscribeExp();
+            if(state.unsubscribeSet) state.unsubscribeSet();
+        };
+
+        const renderDashboard = () => {
+            document.getElementById('dash-date').textContent = utils.formatDate(new Date());
+
+            const today = new Date().toISOString().split('T')[0];
+            
+            let omzetToday = 0;
+            let pengeluaranToday = 0;
+            let totalOmzet = 0;
+            let totalPengeluaran = 0;
+
+            state.transactions.forEach(t => {
+                const tDate = new Date(t.createdAt).toISOString().split('T')[0];
+                if (tDate === today) omzetToday += Number(t.total);
+                totalOmzet += Number(t.total);
+            });
+
+            state.expenses.forEach(e => {
+                if (e.date === today) pengeluaranToday += Number(e.amount);
+                totalPengeluaran += Number(e.amount);
+            });
+
+            document.getElementById('dash-omzet').textContent = utils.formatRupiah(omzetToday);
+            document.getElementById('dash-pengeluaran').textContent = utils.formatRupiah(pengeluaranToday);
+            document.getElementById('dash-laba').textContent = utils.formatRupiah(omzetToday - pengeluaranToday);
+            document.getElementById('dash-saldo').textContent = utils.formatRupiah(totalOmzet - totalPengeluaran);
+
+            const listEl = document.getElementById('dash-latest-list');
+            listEl.innerHTML = '';
+            
+            const latest = state.transactions.slice(0, 5);
+            if (latest.length === 0) {
+                listEl.innerHTML = '<p class="text-sm text-gray-500 italic">Belum ada transaksi.</p>';
+            } else {
+                latest.forEach(t => {
+                    const statusColor = t.paymentStatus === 'LUNAS' ? 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/40' : (t.paymentStatus === 'DP' ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/40' : 'text-red-500 bg-red-50 dark:bg-red-950/40');
+                    listEl.innerHTML += `
+                        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 flex justify-between items-center cursor-pointer active:bg-gray-50 dark:active:bg-slate-800" onclick="appLogic.viewInvoice('${t.id}')">
+                            <div>
+                                <p class="font-bold text-brand-navy dark:text-white text-sm">${t.customerName}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${t.product}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-sm text-gray-800 dark:text-gray-200">${utils.formatRupiah(t.total)}</p>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${statusColor}">${t.paymentStatus}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        };
+
+        const renderTransactions = (filterText = '') => {
+            const listEl = document.getElementById('list-transactions');
+            const emptyEl = document.getElementById('empty-trx');
+            listEl.innerHTML = '';
+
+            let filtered = state.transactions;
+            if (filterText) {
+                const lower = filterText.toLowerCase();
+                filtered = filtered.filter(t => 
+                    (t.customerName && t.customerName.toLowerCase().includes(lower)) ||
+                    (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(lower)) ||
+                    (t.product && t.product.toLowerCase().includes(lower))
+                );
+            }
+
+            if (filtered.length === 0) {
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                filtered.forEach(t => {
+                    const statusColor = t.paymentStatus === 'LUNAS' ? 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/40' : (t.paymentStatus === 'DP' ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/40' : 'text-red-500 bg-red-50 dark:bg-red-950/40');
+                    listEl.innerHTML += `
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 mb-3 cursor-pointer" onclick="appLogic.viewInvoice('${t.id}')">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="text-xs font-mono text-gray-500 dark:text-gray-400">${t.invoiceNumber}</p>
+                                    <p class="font-bold text-brand-navy dark:text-white">${t.customerName}</p>
+                                </div>
+                                <span class="text-xs font-bold px-2 py-1 rounded ${statusColor}">${t.paymentStatus}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300 mb-3">${t.product}</div>
+                            <div class="flex justify-between items-center border-t border-gray-50 dark:border-slate-800 pt-2">
+                                <span class="text-xs text-gray-400">${utils.formatDate(t.createdAt)}</span>
+                                <span class="font-bold text-brand-emerald">${utils.formatRupiah(t.total)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        };
+
+        const renderExpenses = () => {
+            const listEl = document.getElementById('list-expenses');
+            listEl.innerHTML = '';
+            
+            document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+
+            if (state.expenses.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm">Belum ada catatan pengeluaran.</div>';
+                return;
+            }
+
+            state.expenses.forEach(e => {
+                listEl.innerHTML += `
+                    <div class="bg-white dark:bg-slate-900 p-3.5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/40 text-red-500 flex items-center justify-center mr-3">
+                                <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm text-gray-800 dark:text-white">${e.description}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${utils.formatDate(e.date)} • ${e.category}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-red-500 text-sm">-${utils.formatRupiah(e.amount)}</p>
+                            <button onclick="appLogic.deleteExpense('${e.id}')" class="text-[10px] text-gray-400 hover:text-red-500 mt-1">Hapus</button>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        };
+
+        const renderSettingsForm = () => {
+            document.getElementById('set-name').value = state.settings.name || "";
+            document.getElementById('set-tagline').value = state.settings.tagline || "";
+            document.getElementById('set-phone').value = state.settings.phone || "";
+            document.getElementById('set-address').value = state.settings.address || "";
+        };
+
+        window.appLogic = {
+            loginDemo: async () => {
+                if(!auth) { utils.showToast("Firebase belum dikonfigurasi"); return; }
+                try {
+                    await signInAnonymously(auth);
+                    utils.showToast("Login Demo Berhasil");
+                } catch (error) {
+                    utils.showToast("Error: " + error.message);
+                }
+            },
+
+            logout: async () => {
+                if(confirm("Apakah Anda yakin ingin keluar?")) {
+                    await signOut(auth);
+                    clearListeners();
+                    state.user = null;
+                    appNav.goTo('login');
+                }
+            },
+
+            toggleTheme: () => {
+                const html = document.documentElement;
+                html.classList.toggle('dark');
+                const isDark = html.classList.contains('dark');
+                localStorage.setItem('zalf_theme', isDark ? 'dark' : 'light');
+                utils.updateThemeIconUI();
+            },
+
+            calculateTrxTotal: () => {
+                const price = Number(document.getElementById('trx-price').value) || 0;
+                const qty = Number(document.getElementById('trx-qty').value) || 1;
+                const discount = Number(document.getElementById('trx-discount').value) || 0;
+                const shipping = Number(document.getElementById('trx-shipping').value) || 0;
+
+                const subtotal = price * qty;
+                const total = subtotal - discount + shipping;
+
+                document.getElementById('calc-subtotal').textContent = utils.formatRupiah(subtotal);
+                document.getElementById('calc-discount').textContent = "-" + utils.formatRupiah(discount);
+                document.getElementById('calc-shipping').textContent = "+" + utils.formatRupiah(shipping);
+                document.getElementById('calc-total').textContent = utils.formatRupiah(total > 0 ? total : 0);
+            },
+
+            saveTransaction: async (e) => {
+                e.preventDefault();
+                if (!state.user || !db) return;
+
+                const price = Number(document.getElementById('trx-price').value) || 0;
+                const qty = Number(document.getElementById('trx-qty').value) || 1;
+                const discount = Number(document.getElementById('trx-discount').value) || 0;
+                const shipping = Number(document.getElementById('trx-shipping').value) || 0;
+                const total = (price * qty) - discount + shipping;
+                const status = document.getElementById('trx-status').value;
+                const dp = Number(document.getElementById('trx-dp').value) || 0;
+
+                const trxData = {
+                    invoiceNumber: utils.generateInvoiceNumber(),
+                    customerName: document.getElementById('trx-name').value,
+                    customerPhone: document.getElementById('trx-wa').value,
+                    product: document.getElementById('trx-product').value,
+                    note: document.getElementById('trx-note').value,
+                    price: price,
+                    quantity: qty,
+                    discount: discount,
+                    shipping: shipping,
+                    total: total > 0 ? total : 0,
+                    paymentStatus: status,
+                    paidAmount: status === 'LUNAS' ? total : (status === 'DP' ? dp : 0),
+                    remainingAmount: status === 'LUNAS' ? 0 : (status === 'DP' ? total - dp : total),
+                    paymentMethod: document.getElementById('trx-method').value,
+                    createdAt: Date.now()
+                };
+
+                try {
+                    const btn = e.target.querySelector('button[type="submit"]');
+                    btn.disabled = true;
+                    btn.innerHTML = '<div class="loader mx-auto h-5 w-5 border-2 border-transparent border-t-white"></div>';
+                    
+                    const colRef = collection(db, 'artifacts', appId, 'users', state.user.uid, 'transactions');
+                    const docRef = await addDoc(colRef, trxData);
+                    
+                    utils.showToast("Transaksi Berhasil Disimpan!");
+                    e.target.reset();
+                    appLogic.calculateTrxTotal();
+                    btn.disabled = false;
+                    btn.innerHTML = 'SIMPAN TRANSAKSI';
+                    
+                    appLogic.viewInvoice(docRef.id, trxData);
+
+                } catch (error) {
+                    utils.showToast("Gagal menyimpan: " + error.message);
+                    console.error(error);
+                }
+            },
+
+            viewInvoice: (id, directData = null) => {
+                const trx = directData || state.transactions.find(t => t.id === id);
+                if (!trx) return;
+                
+                state.currentInvoice = trx;
+
+                document.getElementById('inv-brand').textContent = state.settings.name || "ZALF PRODUCTION";
+                document.getElementById('inv-tagline').textContent = state.settings.tagline || "Creative • Printing • Digital Solution";
+                document.getElementById('inv-address').textContent = state.settings.address || "-";
+                document.getElementById('inv-phone').textContent = state.settings.phone || "-";
+
+                document.getElementById('inv-number').textContent = trx.invoiceNumber;
+                document.getElementById('inv-date').textContent = utils.formatDate(trx.createdAt);
+                document.getElementById('inv-customer').textContent = trx.customerName;
+                document.getElementById('inv-customer-phone').textContent = trx.customerPhone;
+                
+                document.getElementById('inv-product').textContent = trx.product;
+                document.getElementById('inv-note').textContent = trx.note ? `Catatan: ${trx.note}` : '';
+                document.getElementById('inv-qty-price').textContent = `${trx.quantity} x ${utils.formatRupiah(trx.price)}`;
+                document.getElementById('inv-subtotal').textContent = utils.formatRupiah(trx.price * trx.quantity);
+
+                document.getElementById('inv-sum-sub').textContent = utils.formatRupiah(trx.price * trx.quantity);
+                document.getElementById('inv-sum-disc').textContent = utils.formatRupiah(trx.discount);
+                document.getElementById('inv-sum-ship').textContent = utils.formatRupiah(trx.shipping);
+                document.getElementById('inv-sum-total').textContent = utils.formatRupiah(trx.total);
+
+                const elStatus = document.getElementById('inv-status');
+                elStatus.textContent = trx.paymentStatus;
+                elStatus.className = `font-bold uppercase ${trx.paymentStatus === 'LUNAS' ? 'text-brand-emerald' : 'text-red-500'}`;
+                
+                const btnUpdatePay = document.getElementById('btn-update-pay');
+                if (trx.paymentStatus !== 'LUNAS') {
+                    btnUpdatePay.classList.remove('hidden');
+                    document.getElementById('modal-remain').textContent = utils.formatRupiah(trx.remainingAmount);
+                } else {
+                    btnUpdatePay.classList.add('hidden');
+                }
+
+                document.getElementById('inv-method').textContent = trx.paymentMethod;
+
+                const dpInfo = document.getElementById('inv-dp-info');
+                if (trx.paymentStatus === 'DP' || trx.paymentStatus === 'BELUM LUNAS') {
+                    dpInfo.classList.remove('hidden');
+                    document.getElementById('inv-paid').textContent = utils.formatRupiah(trx.paidAmount);
+                    document.getElementById('inv-remain').textContent = utils.formatRupiah(trx.remainingAmount);
+                } else {
+                    dpInfo.classList.add('hidden');
+                }
+
+                const btnWa = document.getElementById('btn-share-wa');
+                let waText = `Halo Kak ${trx.customerName} 👋\n\nTerima kasih telah melakukan transaksi di *${state.settings.name || 'ZALF PRODUCTION'}*.\n\nBerikut detail transaksi:\n\nNo. Nota: ${trx.invoiceNumber}\nProduk: ${trx.product}\nTotal: *${utils.formatRupiah(trx.total)}*\nStatus: *${trx.paymentStatus}*\n\nTerima kasih atas kepercayaannya.\n\n${state.settings.name}\n${state.settings.tagline || ''}`;
+                
+                btnWa.onclick = () => {
+                    let phone = trx.customerPhone;
+                    if(phone.startsWith('0')) phone = '62' + phone.substring(1);
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText)}`, '_blank');
+                };
+
+                appNav.goTo('invoice');
+            },
+
+            savePaymentUpdate: async () => {
+                if(!state.currentInvoice || !db || !state.user) return;
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', state.user.uid, 'transactions', state.currentInvoice.id);
+                    const updatedData = {
+                        paymentStatus: 'LUNAS',
+                        paidAmount: state.currentInvoice.total,
+                        remainingAmount: 0,
+                        updatedAt: Date.now()
+                    };
+                    
+                    await updateDoc(docRef, updatedData);
+                    utils.showToast("Pembayaran berhasil diupdate ke LUNAS!");
+                    document.getElementById('modal-payment').classList.add('hidden');
+                    
+                    const updatedTrx = { ...state.currentInvoice, ...updatedData };
+                    appLogic.viewInvoice(updatedTrx.id, updatedTrx);
+                    
+                } catch (error) {
+                    console.error("Gagal update pembayaran", error);
+                    utils.showToast("Gagal mengupdate pembayaran");
+                }
+            },
+
+            printInvoice: () => {
+                window.print();
+            },
+
+            shareImage: async () => {
+                const paper = document.getElementById('invoice-paper');
+                const btn = document.getElementById('btn-share-img');
+                const originalContent = btn.innerHTML;
+                
+                btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-1 animate-spin"></i> Proses...';
+                lucide.createIcons();
+
+                try {
+                    window.scrollTo(0,0);
+                    const canvas = await html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                    
+                    canvas.toBlob(async (blob) => {
+                        const filename = `Nota-${state.currentInvoice.invoiceNumber}.png`;
+                        const file = new File([blob], filename, { type: 'image/png' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    title: `Nota ${state.currentInvoice.invoiceNumber}`,
+                                    text: 'Berikut adalah nota transaksi Anda.',
+                                    files: [file]
+                                });
+                            } catch (e) { console.log('Share cancelled', e); }
+                        } else {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a'); a.href = url; a.download = filename;
+                            document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); a.remove();
+                            utils.showToast("Gambar nota berhasil diunduh");
+                        }
+                        btn.innerHTML = originalContent; lucide.createIcons();
+                    }, 'image/png');
+
+                } catch (error) {
+                    console.error("Error creating image:", error);
+                    utils.showToast("Gagal memproses gambar nota");
+                    btn.innerHTML = originalContent; lucide.createIcons();
+                }
+            },
+            
+            shareReportImage: async () => {
+                const paper = document.getElementById('report-paper');
+                const btn = document.getElementById('btn-share-rep-img');
+                const originalContent = btn.innerHTML;
+                
+                btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-1 animate-spin"></i> Proses...';
+                lucide.createIcons();
+
+                try {
+                    window.scrollTo(0,0);
+                    const canvas = await html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                    
+                    canvas.toBlob(async (blob) => {
+                        const filename = `Laporan-Keuangan-ZALFPAY.png`;
+                        const file = new File([blob], filename, { type: 'image/png' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({ title: 'Laporan Keuangan', text: 'Berikut adalah Laporan Keuangan terbaru.', files: [file] });
+                            } catch (e) { console.log('Share cancelled', e); }
+                        } else {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a'); a.href = url; a.download = filename;
+                            document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); a.remove();
+                            utils.showToast("Gambar Laporan berhasil diunduh");
+                        }
+                        btn.innerHTML = originalContent; lucide.createIcons();
+                    }, 'image/png');
+                } catch (error) {
+                    utils.showToast("Gagal memproses gambar laporan");
+                    btn.innerHTML = originalContent; lucide.createIcons();
+                }
+            },
+
+            saveExpense: async (e) => {
+                e.preventDefault();
+                if (!state.user || !db) return;
+
+                const data = {
+                    date: document.getElementById('exp-date').value,
+                    category: document.getElementById('exp-category').value,
+                    description: document.getElementById('exp-desc').value,
+                    amount: Number(document.getElementById('exp-amount').value),
+                    createdAt: Date.now()
+                };
+
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'users', state.user.uid, 'expenses');
+                    await addDoc(colRef, data);
+                    utils.showToast("Pengeluaran Disimpan");
+                    e.target.reset();
+                    document.getElementById('form-exp-container').classList.add('hidden');
+                } catch (error) {
+                    utils.showToast("Gagal menyimpan: " + error.message);
+                }
+            },
+
+            deleteExpense: async (id) => {
+                if (!confirm("Hapus pengeluaran ini?")) return;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'expenses', id));
+                    utils.showToast("Dihapus");
+                } catch (e) {
+                    utils.showToast("Gagal menghapus");
+                }
+            },
+
+            saveSettings: async (e) => {
+                e.preventDefault();
+                if (!state.user || !db) return;
+
+                const data = {
+                    name: document.getElementById('set-name').value,
+                    tagline: document.getElementById('set-tagline').value,
+                    phone: document.getElementById('set-phone').value,
+                    address: document.getElementById('set-address').value,
+                };
+
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', state.user.uid, 'settings', 'profile');
+                    await setDoc(docRef, data);
+                    utils.showToast("Pengaturan Disimpan");
+                } catch (error) {
+                    utils.showToast("Gagal menyimpan: " + error.message);
+                }
+            },
+
+            generateReport: (period) => {
+                document.querySelectorAll('.rep-tab').forEach(el => {
+                    el.classList.remove('bg-brand-emerald', 'text-white', 'active-rep-tab');
+                    el.classList.add('text-gray-500', 'dark:text-gray-400');
+                });
+                event.target.classList.remove('text-gray-500', 'dark:text-gray-400');
+                event.target.classList.add('bg-brand-emerald', 'text-white', 'active-rep-tab');
+
+                const now = new Date();
+                let filteredTrx = [];
+                let filteredExp = [];
+                let title = "";
+
+                if (period === 'today') {
+                    title = "Hari Ini";
+                    const todayStr = now.toISOString().split('T')[0];
+                    filteredTrx = state.transactions.filter(t => new Date(t.createdAt).toISOString().split('T')[0] === todayStr);
+                    filteredExp = state.expenses.filter(e => e.date === todayStr);
+                } else if (period === 'week') {
+                    title = "Minggu Ini";
+                    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    filteredTrx = state.transactions.filter(t => new Date(t.createdAt) >= oneWeekAgo);
+                    filteredExp = state.expenses.filter(e => new Date(e.date) >= oneWeekAgo);
+                } else if (period === 'month') {
+                    title = "Bulan Ini";
+                    const currentMonth = now.getMonth();
+                    const currentYear = now.getFullYear();
+                    filteredTrx = state.transactions.filter(t => { const d = new Date(t.createdAt); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; });
+                    filteredExp = state.expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; });
+                } else {
+                    title = "Semua Waktu";
+                    filteredTrx = state.transactions;
+                    filteredExp = state.expenses;
+                }
+
+                const totalIn = filteredTrx.reduce((sum, t) => sum + Number(t.total), 0);
+                const totalOut = filteredExp.reduce((sum, e) => sum + Number(e.amount), 0);
+                const profit = totalIn - totalOut;
+
+                document.getElementById('rep-title').textContent = `Periode: ${title}`;
+                document.getElementById('rep-in').textContent = utils.formatRupiah(totalIn);
+                document.getElementById('rep-out').textContent = utils.formatRupiah(totalOut);
+                document.getElementById('rep-profit').textContent = utils.formatRupiah(profit);
+                document.getElementById('rep-count').textContent = filteredTrx.length;
+                
+                document.getElementById('rep-brand-name').textContent = state.settings.name || 'ZALF PRODUCTION';
+                document.getElementById('rep-timestamp').textContent = utils.formatDate(new Date()) + " " + new Date().toLocaleTimeString('id-ID');
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            utils.updateThemeIconUI();
+            
+            const trxInputs = ['trx-price', 'trx-qty', 'trx-discount', 'trx-shipping'];
+            trxInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', appLogic.calculateTrxTotal);
+            });
+
+            document.getElementById('trx-status').addEventListener('change', (e) => {
+                const dpCont = document.getElementById('dp-container');
+                const dpInput = document.getElementById('trx-dp');
+                if (e.target.value === 'DP') {
+                    dpCont.classList.remove('hidden');
+                    dpInput.required = true;
+                } else {
+                    dpCont.classList.add('hidden');
+                    dpInput.required = false;
+                    dpInput.value = '';
+                }
+            });
+
+            document.getElementById('search-trx').addEventListener('input', (e) => {
+                renderTransactions(e.target.value);
+            });
+
+            document.getElementById('form-trx').addEventListener('submit', appLogic.saveTransaction);
+            document.getElementById('form-exp').addEventListener('submit', appLogic.saveExpense);
+            document.getElementById('form-settings').addEventListener('submit', appLogic.saveSettings);
+            document.getElementById('btn-demo-login').addEventListener('click', appLogic.loginDemo);
+            
+            document.getElementById('form-login').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if(!auth) { utils.showToast("Firebase Error"); return; }
+                const eVal = document.getElementById('login-email').value;
+                const pVal = document.getElementById('login-password').value;
+                try {
+                    await signInWithEmailAndPassword(auth, eVal, pVal);
+                } catch (err) {
+                    utils.showToast("Login gagal. Cek email/password.");
+                }
+            });
+        });
+
+        const initAuth = async () => {
+            const splashTimer = new Promise(resolve => setTimeout(resolve, 1000));
+            
+            if (!auth) {
+                console.warn("Jalankan di server/Firebase untuk fungsionalitas penuh.");
+                await splashTimer;
+                utils.hideSplash();
+                appNav.goTo('login');
+                return;
+            }
+            
+            onAuthStateChanged(auth, async (user) => {
+                state.user = user;
+                await splashTimer;
+                utils.hideSplash();
+
+                if (user) {
+                    initDataListeners();
+                    appNav.goTo('dashboard');
+                } else {
+                    clearListeners();
+                    appNav.goTo('login');
+                }
+            });
+
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch(e) {
+                    console.error("Token Auth Failed", e);
+                }
+            }
+        };
+
+        initAuth();
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Reg Error', err));
+            });
+        }
+    </script>
+</body>
+</html>

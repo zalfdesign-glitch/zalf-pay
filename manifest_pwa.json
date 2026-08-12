@@ -1,0 +1,22 @@
+{
+  "name": "ZALF PAY - Production",
+  "short_name": "ZALF PAY",
+  "description": "Aplikasi pencatatan keuangan dan nota digital untuk ZALF PRODUCTION.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#047857",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23047857'><rect width='512' height='512' rx='100'/><path d='M150 150 L362 150 L200 362 L150 362 Z' fill='white'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23047857'><rect width='512' height='512' rx='100'/><path d='M150 150 L362 150 L200 362 L150 362 Z' fill='white'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
