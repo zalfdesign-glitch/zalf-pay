@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZALF PAY - ZALF PRODUCTION</title>
     
-    <!-- PWA Setup -->
+    <!-- PWA Setup & Icons -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#047857">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ZALF PAY">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzA0Nzg1NyIvPgogIDxwYXRoIGQ9Ik0xMjAgMTkyQzEyMCAxNzQuMzI3IDEzNC4zMjcgMTYwIDE1MiAxNjBIMzYwQzM3Ny42NzMgMTYwIDM5MiAxNzQuMzI3IDM5MiAxOTJWMzIwQzM5MiAzMzcuNjczIDM3Ny42NzMgMzUyIDM2MCAzNTJIMTUyQzEzNC4zMjcgMzUyIDEyMCAzMzcuNjczIDEyMCAzMjBWMTkyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTM2MCAyNTZIMzkyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSIzMjgiIGN5PSIyNTYiIHI9IjE2IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzA0Nzg1NyIvPgogIDxwYXRoIGQ9Ik0xMjAgMTkyQzEyMCAxNzQuMzI3IDEzNC4zMjcgMTYwIDE1MiAxNjBIMzYwQzM3Ny42NzMgMTYwIDM5MiAxNzQuMzI3IDM5MiAxOTJWMzIwQzM5MiAzMzcuNjczIDM3Ny42NzMgMzUyIDM2MCAzNTJIMTUyQzEzNC4zMjcgMzUyIDEyMCAzMzcuNjczIDEyMCAzMjBWMTkyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTM2MCAyNTZIMzkyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSIzMjgiIGN5PSIyNTYiIHI9IjE2IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,9 +31,9 @@
                 extend: {
                     colors: {
                         brand: {
-                            emerald: '#047857', // Emerald Green
-                            navy: '#1e293b',    // Navy Blue
-                            gold: '#eab308',    // Gold
+                            emerald: '#047857',
+                            navy: '#1e293b',
+                            gold: '#eab308',
                             light: '#f8fafc'
                         }
                     }
@@ -100,17 +102,24 @@
     <div id="app" class="max-w-2xl mx-auto w-full relative">
 
         <!-- ============================== -->
-        <!-- WIDGET POJOK KANAN ATAS (JAM, TEMA, KELUAR) -->
+        <!-- WIDGET POJOK KANAN ATAS -->
         <!-- ============================== -->
         <div id="top-right-widget" class="absolute top-4 right-4 z-[90] flex items-center space-x-2 hidden no-print">
+            <!-- Tombol Install PWA (Akan muncul otomatis jika support) -->
+            <button onclick="appLogic.installPWA()" class="btn-install-pwa hidden p-2 bg-brand-emerald text-white rounded-xl shadow-sm border border-emerald-600 active:scale-95 transition-transform animate-pulse" title="Install Aplikasi ZALF PAY">
+                <i data-lucide="download" class="w-4 h-4"></i>
+            </button>
+            
             <!-- Jam Realtime -->
             <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur px-2.5 py-1.5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center justify-center">
                 <span class="realtime-clock text-[11px] sm:text-xs font-mono font-bold text-brand-navy dark:text-white tracking-wider">00:00:00</span>
             </div>
+            
             <!-- Toggle Tema -->
             <button onclick="appLogic.toggleTheme()" class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-yellow-400 active:scale-95 transition-transform" title="Ganti Tema">
                 <i data-lucide="moon" class="theme-icon w-4 h-4"></i>
             </button>
+            
             <!-- Tombol Keluar (Logout) -->
             <button onclick="appLogic.logout()" class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 text-red-500 active:scale-95 transition-transform" title="Keluar">
                 <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -367,8 +376,9 @@
                     <div class="flex justify-between"><span>Subtotal</span> <span id="inv-sum-sub">Rp75.000</span></div>
                     <div class="flex justify-between text-red-500"><span>Diskon</span> <span id="inv-sum-disc">Rp0</span></div>
                     <div class="flex justify-between"><span>Ongkir</span> <span id="inv-sum-ship">Rp0</span></div>
-                    <div class="flex justify-between text-base font-black pt-2 mt-2 border-t border-gray-100 text-brand-navy">
-                        <span>TOTAL</span> <span id="inv-sum-total">Rp75.000</span>
+                    <div class="flex justify-between items-end pt-3 mt-3 border-t-2 border-gray-300 text-brand-navy">
+                        <span class="font-bold text-sm tracking-widest mb-0.5">TOTAL</span> 
+                        <span id="inv-sum-total" class="text-2xl sm:text-3xl font-black leading-none">Rp75.000</span>
                     </div>
                 </div>
 
@@ -506,6 +516,15 @@
         <!-- ============================== -->
         <div id="screen-settings" class="hidden p-4 pt-16 space-y-4">
             <h2 class="text-xl font-bold text-brand-navy dark:text-white mb-2">Pengaturan Toko</h2>
+            
+            <!-- Install App Banner inside Settings -->
+            <div class="btn-install-pwa hidden bg-brand-emerald text-white p-4 rounded-2xl shadow-sm border border-emerald-600 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold">Install Aplikasi</h3>
+                    <p class="text-xs text-emerald-100 mt-1">Pasang ZALF PAY di HP Anda</p>
+                </div>
+                <button onclick="appLogic.installPWA()" class="bg-white text-brand-emerald px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition">INSTALL</button>
+            </div>
 
             <form id="form-settings" class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 space-y-4">
                 <div>
@@ -528,10 +547,6 @@
                     SIMPAN PENGATURAN
                 </button>
             </form>
-
-            <button onclick="appLogic.logout()" class="w-full bg-white dark:bg-slate-900 text-red-500 border border-red-200 dark:border-red-900/40 font-bold py-3 rounded-xl shadow-sm hover:bg-red-50 dark:hover:bg-red-950/20 transition flex justify-center items-center">
-                <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> KELUAR (LOGOUT)
-            </button>
         </div>
 
     </div>
@@ -602,13 +617,15 @@
         </div>
     </div>
 
-
     <!-- Firebase & Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, getDocs, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // ==========================================
+        // GANTI NILAI INI DENGAN FIREBASE CONFIG ANDA
+        // ==========================================
         let firebaseConfig = {
   apiKey: "AIzaSyBpHTJtg30msgzwbQPxiHfN_0ZcGErNqFk",
   authDomain: "zalf-pay.firebaseapp.com",
@@ -648,6 +665,15 @@
             unsubscribeExp: null,
             unsubscribeSet: null
         };
+
+        // PWA Install Prompt Logic
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Tampilkan tombol install jika PWA support
+            document.querySelectorAll('.btn-install-pwa').forEach(el => el.classList.remove('hidden'));
+        });
 
         const utils = {
             formatRupiah: (number) => {
@@ -690,6 +716,7 @@
             }
         };
 
+        // Jam Digital
         setInterval(() => {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -716,7 +743,7 @@
                 const nav = document.getElementById('bottom-nav');
                 const topRightWidget = document.getElementById('top-right-widget');
                 
-                if (screenName === 'login' || screenName === 'invoice' || screenName === 'transaction-form') {
+                if (screenName === 'login' || screenName === 'invoice') {
                     nav.classList.add('hidden');
                     topRightWidget.classList.add('hidden');
                     document.body.classList.remove('pb-20');
@@ -921,6 +948,17 @@
         };
 
         window.appLogic = {
+            installPWA: async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        document.querySelectorAll('.btn-install-pwa').forEach(el => el.classList.add('hidden'));
+                    }
+                    deferredPrompt = null;
+                }
+            },
+            
             logout: async () => {
                 if(confirm("Apakah Anda yakin ingin keluar?")) {
                     await signOut(auth);
