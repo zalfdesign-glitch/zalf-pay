@@ -206,9 +206,12 @@
         <!-- SCREEN: FORM TRANSAKSI -->
         <!-- ============================== -->
         <div id="screen-transaction-form" class="hidden p-4 pt-16">
-            <div class="flex items-center mb-6">
-                <button onclick="appNav.goTo('dashboard')" class="mr-4 p-2 bg-white dark:bg-slate-900 text-gray-800 dark:text-white rounded-full shadow-sm border dark:border-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="text-xl font-bold text-brand-navy dark:text-white">Transaksi Baru</h2>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <button onclick="appNav.goTo('dashboard')" class="mr-4 p-2 bg-white dark:bg-slate-900 text-gray-800 dark:text-white rounded-full shadow-sm border dark:border-slate-800"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <h2 id="form-trx-title" class="text-xl font-bold text-brand-navy dark:text-white">Transaksi Baru</h2>
+                </div>
+                <button id="btn-cancel-edit" onclick="appLogic.cancelEdit()" class="hidden text-xs font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800">Batal Edit</button>
             </div>
 
             <form id="form-trx" class="space-y-4 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
@@ -294,7 +297,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full mt-4 bg-brand-navy dark:bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-700 transition active:scale-[0.98]">
+                <button type="submit" id="btn-submit-trx" class="w-full mt-4 bg-brand-navy dark:bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-700 transition active:scale-[0.98]">
                     SIMPAN TRANSAKSI
                 </button>
             </form>
@@ -617,6 +620,7 @@
         </div>
     </div>
 
+
     <!-- Firebase & Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -661,6 +665,7 @@
                 address: ""
             },
             currentInvoice: null,
+            currentEditId: null, // NEW: State untuk tracking edit transaksi
             unsubscribeTrx: null,
             unsubscribeExp: null,
             unsubscribeSet: null
@@ -743,7 +748,7 @@
                 const nav = document.getElementById('bottom-nav');
                 const topRightWidget = document.getElementById('top-right-widget');
                 
-                if (screenName === 'login' || screenName === 'invoice') {
+                if (screenName === 'login' || screenName === 'invoice' || screenName === 'transaction-form') {
                     nav.classList.add('hidden');
                     topRightWidget.classList.add('hidden');
                     document.body.classList.remove('pb-20');
@@ -897,9 +902,13 @@
                                 <span class="text-xs font-bold px-2 py-1 rounded ${statusColor}">${t.paymentStatus}</span>
                             </div>
                             <div class="text-sm text-gray-600 dark:text-gray-300 mb-3">${t.product}</div>
-                            <div class="flex justify-between items-center border-t border-gray-50 dark:border-slate-800 pt-2">
-                                <span class="text-xs text-gray-400">${utils.formatDate(t.createdAt)}</span>
-                                <span class="font-bold text-brand-emerald">${utils.formatRupiah(t.total)}</span>
+                            <div class="flex justify-between items-center border-t border-gray-50 dark:border-slate-800 pt-3">
+                                <span class="text-[11px] text-gray-400">${utils.formatDate(t.createdAt)}</span>
+                                <div class="flex items-center">
+                                    <button onclick="event.stopPropagation(); appLogic.editTransaction('${t.id}')" class="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-1.5 rounded mr-1" title="Edit"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                    <button onclick="event.stopPropagation(); appLogic.deleteTransaction('${t.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-1.5 rounded mr-3" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <span class="font-bold text-brand-emerald text-base">${utils.formatRupiah(t.total)}</span>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -956,6 +965,8 @@
                         document.querySelectorAll('.btn-install-pwa').forEach(el => el.classList.add('hidden'));
                     }
                     deferredPrompt = null;
+                } else {
+                    alert("Gunakan browser Chrome/Safari, pastikan menggunakan koneksi aman (HTTPS), atau klik tombol 'Add to Home Screen' dari menu browser Anda.");
                 }
             },
             
@@ -991,6 +1002,78 @@
                 document.getElementById('calc-total').textContent = utils.formatRupiah(total > 0 ? total : 0);
             },
 
+            // NEW: Fungsi untuk Memulai Edit Transaksi
+            editTransaction: (id) => {
+                const t = state.transactions.find(x => x.id === id);
+                if(!t) return;
+                
+                state.currentEditId = id; // Tandai bahwa kita sedang dalam mode edit
+
+                // Masukkan data ke form
+                document.getElementById('trx-name').value = t.customerName;
+                document.getElementById('trx-wa').value = t.customerPhone;
+                document.getElementById('trx-product').value = t.product;
+                document.getElementById('trx-note').value = t.note || '';
+                document.getElementById('trx-price').value = t.price;
+                document.getElementById('trx-qty').value = t.quantity;
+                document.getElementById('trx-discount').value = t.discount || 0;
+                document.getElementById('trx-shipping').value = t.shipping || 0;
+                
+                document.getElementById('trx-status').value = t.paymentStatus;
+                
+                const dpCont = document.getElementById('dp-container');
+                const dpInput = document.getElementById('trx-dp');
+                if (t.paymentStatus === 'DP') {
+                    dpCont.classList.remove('hidden');
+                    dpInput.required = true;
+                    dpInput.value = t.paidAmount;
+                } else {
+                    dpCont.classList.add('hidden');
+                    dpInput.required = false;
+                    dpInput.value = '';
+                }
+
+                document.getElementById('trx-method').value = t.paymentMethod;
+
+                appLogic.calculateTrxTotal();
+
+                // Ubah Tampilan UI Form menjadi Mode Edit
+                document.getElementById('form-trx-title').textContent = "Edit Transaksi";
+                document.getElementById('btn-submit-trx').innerHTML = "UPDATE TRANSAKSI";
+                document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+                appNav.goTo('transaction-form');
+            },
+
+            // NEW: Fungsi Batal Edit
+            cancelEdit: () => {
+                state.currentEditId = null;
+                document.getElementById('form-trx').reset();
+                appLogic.calculateTrxTotal();
+                
+                document.getElementById('form-trx-title').textContent = "Transaksi Baru";
+                document.getElementById('btn-submit-trx').innerHTML = "SIMPAN TRANSAKSI";
+                document.getElementById('btn-cancel-edit').classList.add('hidden');
+                
+                const dpCont = document.getElementById('dp-container');
+                dpCont.classList.add('hidden');
+                document.getElementById('trx-dp').required = false;
+            },
+
+            // NEW: Fungsi Hapus Transaksi
+            deleteTransaction: async (id) => {
+                if(!db || !state.user) return;
+                if(!confirm("Anda yakin ingin MENGHAPUS riwayat transaksi ini secara permanen?")) return;
+                
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'transactions', id));
+                    utils.showToast("Transaksi berhasil dihapus");
+                } catch (error) {
+                    console.error(error);
+                    utils.showToast("Gagal menghapus transaksi");
+                }
+            },
+
             saveTransaction: async (e) => {
                 e.preventDefault();
                 if (!state.user || !db) return;
@@ -1003,8 +1086,14 @@
                 const status = document.getElementById('trx-status').value;
                 const dp = Number(document.getElementById('trx-dp').value) || 0;
 
+                const isEdit = !!state.currentEditId;
+                let existingTrx = null;
+                if (isEdit) {
+                    existingTrx = state.transactions.find(t => t.id === state.currentEditId);
+                }
+
                 const trxData = {
-                    invoiceNumber: utils.generateInvoiceNumber(),
+                    invoiceNumber: isEdit ? existingTrx.invoiceNumber : utils.generateInvoiceNumber(),
                     customerName: document.getElementById('trx-name').value,
                     customerPhone: document.getElementById('trx-wa').value,
                     product: document.getElementById('trx-product').value,
@@ -1018,28 +1107,48 @@
                     paidAmount: status === 'LUNAS' ? total : (status === 'DP' ? dp : 0),
                     remainingAmount: status === 'LUNAS' ? 0 : (status === 'DP' ? total - dp : total),
                     paymentMethod: document.getElementById('trx-method').value,
-                    createdAt: Date.now()
+                    updatedAt: Date.now()
                 };
 
+                if (!isEdit) {
+                    trxData.createdAt = Date.now();
+                }
+
                 try {
-                    const btn = e.target.querySelector('button[type="submit"]');
+                    const btn = document.getElementById('btn-submit-trx');
                     btn.disabled = true;
                     btn.innerHTML = '<div class="loader mx-auto h-5 w-5 border-2 border-transparent border-t-white"></div>';
                     
-                    const colRef = collection(db, 'artifacts', appId, 'users', state.user.uid, 'transactions');
-                    const docRef = await addDoc(colRef, trxData);
+                    let docIdToView;
+
+                    if (isEdit) {
+                        // Proses Update Data
+                        const docRef = doc(db, 'artifacts', appId, 'users', state.user.uid, 'transactions', state.currentEditId);
+                        await updateDoc(docRef, trxData);
+                        docIdToView = state.currentEditId;
+                        utils.showToast("Transaksi Berhasil Diperbarui!");
+                        appLogic.cancelEdit(); // Reset form ke semula
+                    } else {
+                        // Proses Simpan Baru
+                        const colRef = collection(db, 'artifacts', appId, 'users', state.user.uid, 'transactions');
+                        const docRef = await addDoc(colRef, trxData);
+                        docIdToView = docRef.id;
+                        utils.showToast("Transaksi Berhasil Disimpan!");
+                        e.target.reset();
+                        appLogic.calculateTrxTotal();
+                    }
                     
-                    utils.showToast("Transaksi Berhasil Disimpan!");
-                    e.target.reset();
-                    appLogic.calculateTrxTotal();
                     btn.disabled = false;
                     btn.innerHTML = 'SIMPAN TRANSAKSI';
                     
-                    appLogic.viewInvoice(docRef.id, trxData);
+                    // Langsung buka nota
+                    appLogic.viewInvoice(docIdToView, trxData);
 
                 } catch (error) {
                     utils.showToast("Gagal menyimpan: " + error.message);
                     console.error(error);
+                    document.getElementById('btn-submit-trx').disabled = false;
+                    document.getElementById('btn-submit-trx').innerHTML = state.currentEditId ? 'UPDATE TRANSAKSI' : 'SIMPAN TRANSAKSI';
                 }
             },
 
@@ -1339,6 +1448,7 @@
             document.getElementById('form-exp').addEventListener('submit', appLogic.saveExpense);
             document.getElementById('form-settings').addEventListener('submit', appLogic.saveSettings);
             
+            // Mode Demo dihilangkan dari form, namun fungsi asli login tetap ada
             document.getElementById('form-login').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if(!auth) { utils.showToast("Firebase Error"); return; }
