@@ -150,6 +150,16 @@
                         MASUK
                     </button>
                 </form>
+
+                <!-- BANNER INSTALL APLIKASI DI BAWAH LOGIN -->
+                <div class="btn-install-pwa hidden mt-8 bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between shadow-sm animate-pulse">
+                    <div class="text-left flex-1">
+                        <p class="text-sm font-bold text-brand-emerald dark:text-emerald-400">Install ZALF PAY</p>
+                        <p class="text-xs text-emerald-700 dark:text-emerald-500 mt-0.5">Pasang aplikasi di layar utama HP</p>
+                    </div>
+                    <button onclick="appLogic.installPWA()" class="bg-brand-emerald text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow hover:bg-emerald-700 active:scale-95 transition">INSTALL</button>
+                </div>
+                
             </div>
         </div>
 
@@ -665,18 +675,18 @@
                 address: ""
             },
             currentInvoice: null,
-            currentEditId: null, // NEW: State untuk tracking edit transaksi
+            currentEditId: null,
             unsubscribeTrx: null,
             unsubscribeExp: null,
             unsubscribeSet: null
         };
 
-        // PWA Install Prompt Logic
+        // Event listener untuk PWA Install Prompt
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Tampilkan tombol install jika PWA support
+            // Tampilkan tombol install di semua tempat yang memiliki class btn-install-pwa
             document.querySelectorAll('.btn-install-pwa').forEach(el => el.classList.remove('hidden'));
         });
 
@@ -966,7 +976,7 @@
                     }
                     deferredPrompt = null;
                 } else {
-                    alert("Gunakan browser Chrome/Safari, pastikan menggunakan koneksi aman (HTTPS), atau klik tombol 'Add to Home Screen' dari menu browser Anda.");
+                    alert("Aplikasi sudah terinstall, ATAU silakan install manual lewat menu Chrome: Klik titik tiga -> 'Tambahkan ke Layar Utama'. \n(Pengguna iPhone: Safari -> Share -> 'Add to Home Screen')");
                 }
             },
             
@@ -1002,14 +1012,12 @@
                 document.getElementById('calc-total').textContent = utils.formatRupiah(total > 0 ? total : 0);
             },
 
-            // NEW: Fungsi untuk Memulai Edit Transaksi
             editTransaction: (id) => {
                 const t = state.transactions.find(x => x.id === id);
                 if(!t) return;
                 
-                state.currentEditId = id; // Tandai bahwa kita sedang dalam mode edit
+                state.currentEditId = id; 
 
-                // Masukkan data ke form
                 document.getElementById('trx-name').value = t.customerName;
                 document.getElementById('trx-wa').value = t.customerPhone;
                 document.getElementById('trx-product').value = t.product;
@@ -1037,7 +1045,6 @@
 
                 appLogic.calculateTrxTotal();
 
-                // Ubah Tampilan UI Form menjadi Mode Edit
                 document.getElementById('form-trx-title').textContent = "Edit Transaksi";
                 document.getElementById('btn-submit-trx').innerHTML = "UPDATE TRANSAKSI";
                 document.getElementById('btn-cancel-edit').classList.remove('hidden');
@@ -1045,7 +1052,6 @@
                 appNav.goTo('transaction-form');
             },
 
-            // NEW: Fungsi Batal Edit
             cancelEdit: () => {
                 state.currentEditId = null;
                 document.getElementById('form-trx').reset();
@@ -1060,7 +1066,6 @@
                 document.getElementById('trx-dp').required = false;
             },
 
-            // NEW: Fungsi Hapus Transaksi
             deleteTransaction: async (id) => {
                 if(!db || !state.user) return;
                 if(!confirm("Anda yakin ingin MENGHAPUS riwayat transaksi ini secara permanen?")) return;
@@ -1122,14 +1127,12 @@
                     let docIdToView;
 
                     if (isEdit) {
-                        // Proses Update Data
                         const docRef = doc(db, 'artifacts', appId, 'users', state.user.uid, 'transactions', state.currentEditId);
                         await updateDoc(docRef, trxData);
                         docIdToView = state.currentEditId;
                         utils.showToast("Transaksi Berhasil Diperbarui!");
-                        appLogic.cancelEdit(); // Reset form ke semula
+                        appLogic.cancelEdit();
                     } else {
-                        // Proses Simpan Baru
                         const colRef = collection(db, 'artifacts', appId, 'users', state.user.uid, 'transactions');
                         const docRef = await addDoc(colRef, trxData);
                         docIdToView = docRef.id;
@@ -1141,7 +1144,6 @@
                     btn.disabled = false;
                     btn.innerHTML = 'SIMPAN TRANSAKSI';
                     
-                    // Langsung buka nota
                     appLogic.viewInvoice(docIdToView, trxData);
 
                 } catch (error) {
@@ -1448,7 +1450,10 @@
             document.getElementById('form-exp').addEventListener('submit', appLogic.saveExpense);
             document.getElementById('form-settings').addEventListener('submit', appLogic.saveSettings);
             
-            // Mode Demo dihilangkan dari form, namun fungsi asli login tetap ada
+            // Perhatikan: Tombol "Mode Demo" hanya ada di UI untuk sementara agar saya bisa akses dari sini, tetapi Anda bisa menghapus kode HTML tombolnya jika rilis nanti
+            const btnDemo = document.getElementById('btn-demo-login');
+            if(btnDemo) btnDemo.addEventListener('click', appLogic.loginDemo);
+            
             document.getElementById('form-login').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if(!auth) { utils.showToast("Firebase Error"); return; }
