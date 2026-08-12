@@ -24,7 +24,7 @@
     <!-- Tailwind Config for Brand Colors & Manual Dark Mode -->
     <script>
         tailwind.config = {
-            darkMode: 'class', // Menggunakan class manual untuk toggle gelap/terang
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -40,7 +40,7 @@
         }
     </script>
 
-    <!-- Pre-load Theme Setup untuk menghindari kedipan warna putih -->
+    <!-- Pre-load Theme Setup -->
     <script>
         const savedTheme = localStorage.getItem('zalf_theme');
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -51,10 +51,7 @@
     </script>
 
     <style>
-        /* Custom Styles & Print Styles */
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Hide scrollbar for cleaner mobile look */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -63,7 +60,6 @@
             html.dark .glass-nav { background: rgba(15, 23, 42, 0.95) !important; }
         }
         
-        /* Print Styles for Nota / Struk / Laporan */
         @media print {
             body { background: white !important; color: black !important; margin: 0; padding: 0; }
             body * { visibility: hidden; }
@@ -76,7 +72,6 @@
             #invoice-paper, #report-paper { box-shadow: none !important; margin: 0 auto; max-width: 100%; border: none !important; padding: 10px; background: white !important; color: black !important; }
         }
 
-        /* Loading Spinner */
         .loader {
             border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffffff;
             border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
@@ -105,16 +100,20 @@
     <div id="app" class="max-w-2xl mx-auto w-full relative">
 
         <!-- ============================== -->
-        <!-- WIDGET POJOK KANAN ATAS (JAM & TEMA) -->
+        <!-- WIDGET POJOK KANAN ATAS (JAM, TEMA, KELUAR) -->
         <!-- ============================== -->
         <div id="top-right-widget" class="absolute top-4 right-4 z-[90] flex items-center space-x-2 hidden no-print">
             <!-- Jam Realtime -->
-            <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur px-2.5 py-1.5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center min-w-[75px] justify-center">
+            <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur px-2.5 py-1.5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center justify-center">
                 <span class="realtime-clock text-[11px] sm:text-xs font-mono font-bold text-brand-navy dark:text-white tracking-wider">00:00:00</span>
             </div>
             <!-- Toggle Tema -->
-            <button onclick="appLogic.toggleTheme()" class="p-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-yellow-400 active:scale-95 transition-transform">
+            <button onclick="appLogic.toggleTheme()" class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-yellow-400 active:scale-95 transition-transform" title="Ganti Tema">
                 <i data-lucide="moon" class="theme-icon w-4 h-4"></i>
+            </button>
+            <!-- Tombol Keluar (Logout) -->
+            <button onclick="appLogic.logout()" class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 text-red-500 active:scale-95 transition-transform" title="Keluar">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
             </button>
         </div>
 
@@ -141,7 +140,6 @@
                     <button type="submit" class="w-full bg-brand-emerald text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-emerald-700 transition active:scale-[0.98]">
                         MASUK
                     </button>
-                    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4 cursor-pointer hover:text-brand-emerald" id="btn-demo-login">Mode Demo (Tanpa Password)</p>
                 </form>
             </div>
         </div>
@@ -611,9 +609,6 @@
         import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, getDocs, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // GANTI NILAI INI DENGAN FIREBASE CONFIG ANDA
-        // ==========================================
         let firebaseConfig = {
   apiKey: "AIzaSyBpHTJtg30msgzwbQPxiHfN_0ZcGErNqFk",
   authDomain: "zalf-pay.firebaseapp.com",
@@ -695,7 +690,6 @@
             }
         };
 
-        // GLOBAL: Jalankan jam real-time
         setInterval(() => {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -722,7 +716,6 @@
                 const nav = document.getElementById('bottom-nav');
                 const topRightWidget = document.getElementById('top-right-widget');
                 
-                // Atur visibilitas UI element berdasarkan halaman
                 if (screenName === 'login' || screenName === 'invoice' || screenName === 'transaction-form') {
                     nav.classList.add('hidden');
                     topRightWidget.classList.add('hidden');
@@ -928,16 +921,6 @@
         };
 
         window.appLogic = {
-            loginDemo: async () => {
-                if(!auth) { utils.showToast("Firebase belum dikonfigurasi"); return; }
-                try {
-                    await signInAnonymously(auth);
-                    utils.showToast("Login Demo Berhasil");
-                } catch (error) {
-                    utils.showToast("Error: " + error.message);
-                }
-            },
-
             logout: async () => {
                 if(confirm("Apakah Anda yakin ingin keluar?")) {
                     await signOut(auth);
@@ -1317,7 +1300,6 @@
             document.getElementById('form-trx').addEventListener('submit', appLogic.saveTransaction);
             document.getElementById('form-exp').addEventListener('submit', appLogic.saveExpense);
             document.getElementById('form-settings').addEventListener('submit', appLogic.saveSettings);
-            document.getElementById('btn-demo-login').addEventListener('click', appLogic.loginDemo);
             
             document.getElementById('form-login').addEventListener('submit', async (e) => {
                 e.preventDefault();
