@@ -12,7 +12,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ZALF PAY">
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzA0Nzg1NyIvPgogIDxwYXRoIGQ9Ik0xMjAgMTkyQzEyMCAxNzQuMzI3IDEzNC4zMjcgMTYwIDE1MiAxNjBIMzYwQzM3Ny42NzMgMTYwIDM5MiAxNzQuMzI3IDM5MiAxOTJWMzIwQzM5MiAzMzcuNjczIDM3Ny42NzMgMzUyIDM2MCAzNTJIMTUyQzEzNC4zMjcgMzUyIDEyMCAzMzcuNjczIDEyMCAzMjBWMTkyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTM2MCAyNTZIMzkyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSIzMjgiIGN5PSIyNTYiIHI9IjE2IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzA0Nzg1NyIvPgogIDxwYXRoIGQ9Ik0xMjAgMTkyQzEyMCAxNzQuMzI3IDEzNC4zMjcgMTYwIDE1MiAxNjBIMzYwQzM3Ny42NzMgMTYwIDM5MiAxNzQuMzI3IDM5MiAxOTJWMzIwQzM5MiAzMzcuNjczIDM3Ny42NzMgMzUyIDM2MCAzNTJIMTUyQzEzNC4zMjcgMzUyIDEyMCAzMzcuNjczIDEyMCAzMjBWMTkyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTM2MCAyNTZIMzkyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSIzMjgiIGN5PSIyNTYiIHI9IjE2IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -105,7 +104,7 @@
         <!-- WIDGET POJOK KANAN ATAS -->
         <!-- ============================== -->
         <div id="top-right-widget" class="absolute top-4 right-4 z-[90] flex items-center space-x-2 hidden no-print">
-            <!-- Tombol Install PWA (Akan muncul otomatis jika support) -->
+            <!-- Tombol Install PWA -->
             <button onclick="appLogic.installPWA()" class="btn-install-pwa hidden p-2 bg-brand-emerald text-white rounded-xl shadow-sm border border-emerald-600 active:scale-95 transition-transform animate-pulse" title="Install Aplikasi ZALF PAY">
                 <i data-lucide="download" class="w-4 h-4"></i>
             </button>
@@ -149,9 +148,11 @@
                     <button type="submit" class="w-full bg-brand-emerald text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-emerald-700 transition active:scale-[0.98]">
                         MASUK
                     </button>
+                    <!-- Mode Demo -->
+                    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4 cursor-pointer hover:text-brand-emerald" id="btn-demo-login">Mode Demo (Tanpa Password)</p>
                 </form>
 
-                <!-- BANNER INSTALL APLIKASI DI BAWAH LOGIN -->
+                <!-- BANNER INSTALL APLIKASI -->
                 <div class="btn-install-pwa hidden mt-8 bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between shadow-sm animate-pulse">
                     <div class="text-left flex-1">
                         <p class="text-sm font-bold text-brand-emerald dark:text-emerald-400">Install ZALF PAY</p>
@@ -238,30 +239,20 @@
                     </div>
                 </div>
 
-                <!-- Pesanan -->
+                <!-- Pesanan (Dynamic Multi-Item) -->
                 <div class="space-y-3 pt-3">
-                    <h3 class="font-bold text-sm text-gray-800 dark:text-gray-200 border-b dark:border-slate-800 pb-2">Detail Pesanan</h3>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Produk / Jasa *</label>
-                        <input type="text" id="trx-product" required placeholder="Contoh: Desain Banner" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-emerald outline-none transition">
+                    <div class="flex justify-between items-center border-b dark:border-slate-800 pb-2">
+                        <h3 class="font-bold text-sm text-gray-800 dark:text-gray-200">Detail Pesanan</h3>
+                        <button type="button" onclick="appLogic.addTrxItem()" class="text-[11px] font-bold text-brand-emerald bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded shadow-sm border border-emerald-100 dark:border-emerald-800">+ Tambah Produk</button>
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Catatan (Opsional)</label>
-                        <textarea id="trx-note" rows="2" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-emerald outline-none transition"></textarea>
+                    
+                    <div id="trx-items-container" class="space-y-3">
+                        <!-- Items injected by JS -->
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Harga Satuan (Rp) *</label>
-                            <input type="number" id="trx-price" required min="0" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jumlah *</label>
-                            <input type="number" id="trx-qty" required min="1" value="1" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Diskon (Rp)</label>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Diskon Total (Rp)</label>
                             <input type="number" id="trx-discount" min="0" value="0" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-xl outline-none">
                         </div>
                         <div>
@@ -375,13 +366,8 @@
 
                 <div class="border-t-2 border-b-2 border-dashed border-gray-300 py-3 mb-4">
                     <p class="text-[10px] font-bold text-gray-400 mb-2">DETAIL PESANAN</p>
-                    <div class="mb-2">
-                        <p class="font-bold text-sm" id="inv-product">Desain Banner</p>
-                        <p class="text-xs text-gray-500 italic" id="inv-note"></p>
-                        <div class="flex justify-between text-xs mt-1">
-                            <span id="inv-qty-price">1 x Rp75.000</span>
-                            <span id="inv-subtotal" class="font-medium">Rp75.000</span>
-                        </div>
+                    <div id="inv-items-list" class="space-y-2">
+                        <!-- Dynamic items will be injected here -->
                     </div>
                 </div>
 
@@ -715,6 +701,12 @@
                 const count = todayTrx.length + 1;
                 return `${prefix}${String(count).padStart(3, '0')}`;
             },
+            getProductSummary: (t) => {
+                if (t.items && t.items.length > 0) {
+                    return t.items[0].name + (t.items.length > 1 ? ` (+${t.items.length - 1} item)` : '');
+                }
+                return t.product || '-';
+            },
             hideSplash: () => {
                 const splash = document.getElementById('splash-screen');
                 splash.classList.add('opacity-0');
@@ -865,11 +857,12 @@
             } else {
                 latest.forEach(t => {
                     const statusColor = t.paymentStatus === 'LUNAS' ? 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/40' : (t.paymentStatus === 'DP' ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/40' : 'text-red-500 bg-red-50 dark:bg-red-950/40');
+                    const prodDesc = utils.getProductSummary(t);
                     listEl.innerHTML += `
                         <div class="bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 flex justify-between items-center cursor-pointer active:bg-gray-50 dark:active:bg-slate-800" onclick="appLogic.viewInvoice('${t.id}')">
                             <div>
                                 <p class="font-bold text-brand-navy dark:text-white text-sm">${t.customerName}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">${t.product}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${prodDesc}</p>
                             </div>
                             <div class="text-right">
                                 <p class="font-bold text-sm text-gray-800 dark:text-gray-200">${utils.formatRupiah(t.total)}</p>
@@ -892,7 +885,7 @@
                 filtered = filtered.filter(t => 
                     (t.customerName && t.customerName.toLowerCase().includes(lower)) ||
                     (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(lower)) ||
-                    (t.product && t.product.toLowerCase().includes(lower))
+                    (utils.getProductSummary(t).toLowerCase().includes(lower))
                 );
             }
 
@@ -902,6 +895,7 @@
                 emptyEl.classList.add('hidden');
                 filtered.forEach(t => {
                     const statusColor = t.paymentStatus === 'LUNAS' ? 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/40' : (t.paymentStatus === 'DP' ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/40' : 'text-red-500 bg-red-50 dark:bg-red-950/40');
+                    const prodDesc = utils.getProductSummary(t);
                     listEl.innerHTML += `
                         <div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 mb-3 cursor-pointer" onclick="appLogic.viewInvoice('${t.id}')">
                             <div class="flex justify-between items-start mb-2">
@@ -911,7 +905,7 @@
                                 </div>
                                 <span class="text-xs font-bold px-2 py-1 rounded ${statusColor}">${t.paymentStatus}</span>
                             </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-300 mb-3">${t.product}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300 mb-3">${prodDesc}</div>
                             <div class="flex justify-between items-center border-t border-gray-50 dark:border-slate-800 pt-3">
                                 <span class="text-[11px] text-gray-400">${utils.formatDate(t.createdAt)}</span>
                                 <div class="flex items-center">
@@ -967,6 +961,77 @@
         };
 
         window.appLogic = {
+            addTrxItem: (data = null) => {
+                const container = document.getElementById('trx-items-container');
+                const itemId = 'item-' + Date.now() + Math.random().toString(36).substr(2, 5);
+                const div = document.createElement('div');
+                div.className = 'trx-item-row bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-200 dark:border-slate-700 relative';
+                div.id = itemId;
+                
+                const name = data ? data.name : '';
+                const note = data ? data.note : '';
+                const price = data ? data.price : '';
+                const qty = data ? data.qty : 1;
+                
+                div.innerHTML = `
+                    <button type="button" onclick="appLogic.removeTrxItem('${itemId}')" class="absolute -top-2 -right-2 bg-red-100 dark:bg-red-900/50 text-red-500 rounded-full p-1 shadow-sm border border-red-200 dark:border-red-800 hidden btn-remove-item"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Produk / Jasa *</label>
+                            <input type="text" required class="item-name w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-emerald transition" value="${name}" placeholder="Contoh: Banner 280gr">
+                        </div>
+                        <div class="grid grid-cols-12 gap-2">
+                            <div class="col-span-5">
+                                <label class="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Harga (Rp) *</label>
+                                <input type="number" required min="0" oninput="appLogic.calculateTrxTotal()" class="item-price w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-emerald transition" value="${price}">
+                            </div>
+                            <div class="col-span-3">
+                                <label class="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Qty *</label>
+                                <input type="number" required min="1" oninput="appLogic.calculateTrxTotal()" class="item-qty w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-emerald transition" value="${qty}">
+                            </div>
+                            <div class="col-span-4">
+                                <label class="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-0.5">Catatan</label>
+                                <input type="text" class="item-note w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-emerald transition" value="${note}" placeholder="Opsional">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+                
+                const rows = document.querySelectorAll('.trx-item-row');
+                rows.forEach(r => {
+                    const btn = r.querySelector('.btn-remove-item');
+                    if(rows.length > 1) btn.classList.remove('hidden');
+                    else btn.classList.add('hidden');
+                });
+                
+                lucide.createIcons();
+            },
+
+            removeTrxItem: (id) => {
+                const el = document.getElementById(id);
+                if(el) el.remove();
+                
+                const rows = document.querySelectorAll('.trx-item-row');
+                rows.forEach(r => {
+                    const btn = r.querySelector('.btn-remove-item');
+                    if(rows.length > 1) btn.classList.remove('hidden');
+                    else btn.classList.add('hidden');
+                });
+                appLogic.calculateTrxTotal();
+            },
+
+            resetTrxForm: () => {
+                document.getElementById('form-trx').reset();
+                document.getElementById('trx-items-container').innerHTML = '';
+                appLogic.addTrxItem(); // Start with 1 empty item
+                appLogic.calculateTrxTotal();
+                
+                const dpCont = document.getElementById('dp-container');
+                dpCont.classList.add('hidden');
+                document.getElementById('trx-dp').required = false;
+            },
+
             installPWA: async () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
@@ -976,10 +1041,20 @@
                     }
                     deferredPrompt = null;
                 } else {
-                    alert("Aplikasi sudah terinstall, ATAU silakan install manual lewat menu Chrome: Klik titik tiga -> 'Tambahkan ke Layar Utama'. \n(Pengguna iPhone: Safari -> Share -> 'Add to Home Screen')");
+                    utils.showToast("Aplikasi sudah terinstall atau browser tidak mendukung.");
                 }
             },
-            
+
+            loginDemo: async () => {
+                if(!auth) { utils.showToast("Firebase belum dikonfigurasi"); return; }
+                try {
+                    await signInAnonymously(auth);
+                    utils.showToast("Login Demo Berhasil");
+                } catch (error) {
+                    utils.showToast("Error: " + error.message);
+                }
+            },
+
             logout: async () => {
                 if(confirm("Apakah Anda yakin ingin keluar?")) {
                     await signOut(auth);
@@ -998,12 +1073,15 @@
             },
 
             calculateTrxTotal: () => {
-                const price = Number(document.getElementById('trx-price').value) || 0;
-                const qty = Number(document.getElementById('trx-qty').value) || 1;
+                let subtotal = 0;
+                document.querySelectorAll('.trx-item-row').forEach(row => {
+                    const price = Number(row.querySelector('.item-price').value) || 0;
+                    const qty = Number(row.querySelector('.item-qty').value) || 1;
+                    subtotal += (price * qty);
+                });
+
                 const discount = Number(document.getElementById('trx-discount').value) || 0;
                 const shipping = Number(document.getElementById('trx-shipping').value) || 0;
-
-                const subtotal = price * qty;
                 const total = subtotal - discount + shipping;
 
                 document.getElementById('calc-subtotal').textContent = utils.formatRupiah(subtotal);
@@ -1020,10 +1098,16 @@
 
                 document.getElementById('trx-name').value = t.customerName;
                 document.getElementById('trx-wa').value = t.customerPhone;
-                document.getElementById('trx-product').value = t.product;
-                document.getElementById('trx-note').value = t.note || '';
-                document.getElementById('trx-price').value = t.price;
-                document.getElementById('trx-qty').value = t.quantity;
+                
+                // Load items
+                document.getElementById('trx-items-container').innerHTML = '';
+                if(t.items && t.items.length > 0) {
+                    t.items.forEach(item => appLogic.addTrxItem(item));
+                } else {
+                    // Fallback backward compatibility for old data
+                    appLogic.addTrxItem({name: t.product, note: t.note, price: t.price, qty: t.quantity});
+                }
+                
                 document.getElementById('trx-discount').value = t.discount || 0;
                 document.getElementById('trx-shipping').value = t.shipping || 0;
                 
@@ -1054,16 +1138,11 @@
 
             cancelEdit: () => {
                 state.currentEditId = null;
-                document.getElementById('form-trx').reset();
-                appLogic.calculateTrxTotal();
+                appLogic.resetTrxForm();
                 
                 document.getElementById('form-trx-title').textContent = "Transaksi Baru";
                 document.getElementById('btn-submit-trx').innerHTML = "SIMPAN TRANSAKSI";
                 document.getElementById('btn-cancel-edit').classList.add('hidden');
-                
-                const dpCont = document.getElementById('dp-container');
-                dpCont.classList.add('hidden');
-                document.getElementById('trx-dp').required = false;
             },
 
             deleteTransaction: async (id) => {
@@ -1083,11 +1162,26 @@
                 e.preventDefault();
                 if (!state.user || !db) return;
 
-                const price = Number(document.getElementById('trx-price').value) || 0;
-                const qty = Number(document.getElementById('trx-qty').value) || 1;
+                const items = [];
+                document.querySelectorAll('.trx-item-row').forEach(row => {
+                    items.push({
+                        name: row.querySelector('.item-name').value,
+                        price: Number(row.querySelector('.item-price').value) || 0,
+                        qty: Number(row.querySelector('.item-qty').value) || 1,
+                        note: row.querySelector('.item-note').value
+                    });
+                });
+
+                if(items.length === 0) {
+                    utils.showToast("Minimal 1 produk harus diisi");
+                    return;
+                }
+
+                let subtotal = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
                 const discount = Number(document.getElementById('trx-discount').value) || 0;
                 const shipping = Number(document.getElementById('trx-shipping').value) || 0;
-                const total = (price * qty) - discount + shipping;
+                const total = subtotal - discount + shipping;
                 const status = document.getElementById('trx-status').value;
                 const dp = Number(document.getElementById('trx-dp').value) || 0;
 
@@ -1101,10 +1195,8 @@
                     invoiceNumber: isEdit ? existingTrx.invoiceNumber : utils.generateInvoiceNumber(),
                     customerName: document.getElementById('trx-name').value,
                     customerPhone: document.getElementById('trx-wa').value,
-                    product: document.getElementById('trx-product').value,
-                    note: document.getElementById('trx-note').value,
-                    price: price,
-                    quantity: qty,
+                    items: items, // Save mapping multi item
+                    product: utils.getProductSummary({items: items}), // Backup string for lightweight display
                     discount: discount,
                     shipping: shipping,
                     total: total > 0 ? total : 0,
@@ -1137,8 +1229,7 @@
                         const docRef = await addDoc(colRef, trxData);
                         docIdToView = docRef.id;
                         utils.showToast("Transaksi Berhasil Disimpan!");
-                        e.target.reset();
-                        appLogic.calculateTrxTotal();
+                        appLogic.resetTrxForm();
                     }
                     
                     btn.disabled = false;
@@ -1170,12 +1261,34 @@
                 document.getElementById('inv-customer').textContent = trx.customerName;
                 document.getElementById('inv-customer-phone').textContent = trx.customerPhone;
                 
-                document.getElementById('inv-product').textContent = trx.product;
-                document.getElementById('inv-note').textContent = trx.note ? `Catatan: ${trx.note}` : '';
-                document.getElementById('inv-qty-price').textContent = `${trx.quantity} x ${utils.formatRupiah(trx.price)}`;
-                document.getElementById('inv-subtotal').textContent = utils.formatRupiah(trx.price * trx.quantity);
+                // Render Multi-Item Invoice
+                const itemsToRender = trx.items || [{
+                    name: trx.product || '-',
+                    note: trx.note || '',
+                    price: Number(trx.price) || 0,
+                    qty: Number(trx.quantity) || 1
+                }];
 
-                document.getElementById('inv-sum-sub').textContent = utils.formatRupiah(trx.price * trx.quantity);
+                const listEl = document.getElementById('inv-items-list');
+                listEl.innerHTML = '';
+                let calcSub = 0;
+
+                itemsToRender.forEach(item => {
+                    const itemSub = item.price * item.qty;
+                    calcSub += itemSub;
+                    listEl.innerHTML += `
+                        <div class="mb-1 border-b border-gray-100 dark:border-gray-200 pb-2 last:border-0 last:pb-0">
+                            <p class="font-bold text-sm">${item.name}</p>
+                            ${item.note ? `<p class="text-[10px] text-gray-500 italic mb-0.5">Catatan: ${item.note}</p>` : ''}
+                            <div class="flex justify-between text-xs mt-1">
+                                <span>${item.qty} x ${utils.formatRupiah(item.price)}</span>
+                                <span class="font-medium">${utils.formatRupiah(itemSub)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('inv-sum-sub').textContent = utils.formatRupiah(calcSub);
                 document.getElementById('inv-sum-disc').textContent = utils.formatRupiah(trx.discount);
                 document.getElementById('inv-sum-ship').textContent = utils.formatRupiah(trx.shipping);
                 document.getElementById('inv-sum-total').textContent = utils.formatRupiah(trx.total);
@@ -1203,8 +1316,10 @@
                     dpInfo.classList.add('hidden');
                 }
 
+                // Update WhatsApp text generator for multiple items
                 const btnWa = document.getElementById('btn-share-wa');
-                let waText = `Halo Kak ${trx.customerName} 👋\n\nTerima kasih telah melakukan transaksi di *${state.settings.name || 'ZALF PRODUCTION'}*.\n\nBerikut detail transaksi:\n\nNo. Nota: ${trx.invoiceNumber}\nProduk: ${trx.product}\nTotal: *${utils.formatRupiah(trx.total)}*\nStatus: *${trx.paymentStatus}*\n\nTerima kasih atas kepercayaannya.\n\n${state.settings.name}\n${state.settings.tagline || ''}`;
+                let itemsText = itemsToRender.map(i => `- ${i.name} (${i.qty}x)`).join('\n');
+                let waText = `Halo Kak ${trx.customerName} 👋\n\nTerima kasih telah melakukan transaksi di *${state.settings.name || 'ZALF PRODUCTION'}*.\n\nBerikut detail transaksi:\n\nNo. Nota: ${trx.invoiceNumber}\nProduk:\n${itemsText}\n\nTotal: *${utils.formatRupiah(trx.total)}*\nStatus: *${trx.paymentStatus}*\n\nTerima kasih atas kepercayaannya.\n\n${state.settings.name}\n${state.settings.tagline || ''}`;
                 
                 btnWa.onclick = () => {
                     let phone = trx.customerPhone;
@@ -1424,10 +1539,12 @@
             lucide.createIcons();
             utils.updateThemeIconUI();
             
-            const trxInputs = ['trx-price', 'trx-qty', 'trx-discount', 'trx-shipping'];
-            trxInputs.forEach(id => {
-                document.getElementById(id).addEventListener('input', appLogic.calculateTrxTotal);
-            });
+            // Input event listeners manual untuk diskon dan ongkir
+            document.getElementById('trx-discount').addEventListener('input', appLogic.calculateTrxTotal);
+            document.getElementById('trx-shipping').addEventListener('input', appLogic.calculateTrxTotal);
+
+            // Initialize Form with 1 item row
+            appLogic.addTrxItem();
 
             document.getElementById('trx-status').addEventListener('change', (e) => {
                 const dpCont = document.getElementById('dp-container');
